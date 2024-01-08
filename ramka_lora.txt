@@ -1,0 +1,30 @@
+
+Struktura ramki LoRa
+--------------------
+
+
+Offset | Rozmiar | Opis
+-------+---------+---------------------------------------------
+ 0x00  |   6 B   | Adres MAC LoRy która przesyła tą ramkę
+       |         |
+ 0x06  |   2 B   | Typ pakietu
+       |         |  na razie powiedzmy że zawsze zero?
+       |         |
+ 0x08  |   1 B   | Numer pakietu w zestawie (wiadomości)
+       |         |
+ 0x09  |   1 B   | Ilość pakietów, które stanowią jedną całą wiadomość
+       |         |  jeżeli to co chcemy przesłać nie zmieści się w jednym
+       |         |  pakiecie, to dzielimy na kawałki i wysyłamy w kilku
+       |         |
+ 0x0A  |   1 B   | Rozmiar danych w tym pakiecie
+       |         |
+ 0x0B  |  [0x0A] | Dane
+       |         |  [0x0A] oznacza, że wartość w polu pod offsetem 0x0A
+       |         |  określa ile zajmują dane (masło maślane, ale mam nadzieje
+       |         |  że wiadomo o co cho)
+       |         |
+ ...   |  32 B   | Suma kontrolna SHA-256
+       |         |  obliczana na podstawie wszystkich pól od początku
+       |         |  oczywiście włącznie z danymi
+
+
