@@ -7,6 +7,7 @@
 #include <fcntl.h>
 
 #include "lora_read.h"
+#include "lora_frame.h"
 #include "log_info.h"
 
 #define MESSAGE_SIZE 8
@@ -94,6 +95,12 @@ char *out_name = NULL;
 
 
 int main(void) {
+
+    lora_frame frame;
+
+    for(size_t i = 0; i < sizeof(frame); i++) ((uint*)&frame)[i] = 0;
+
+
     /*
      * numer ramki: msg_number
      * ten arm cortex-a8 co jest a beaglebonie jest 32-bitowy, więc

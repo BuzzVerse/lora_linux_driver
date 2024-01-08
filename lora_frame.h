@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <stdint.h>
 
 typedef struct lora_frame {
