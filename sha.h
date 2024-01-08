@@ -2,6 +2,7 @@
 #define SHA_H
 
 #include "lora_frame.h"
+#include "log_info.h"
 
 
 /*
