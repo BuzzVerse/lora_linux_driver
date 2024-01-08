@@ -98,7 +98,7 @@ int main(void) {
 
     lora_frame frame;
 
-    for(size_t i = 0; i < sizeof(frame); i++) ((uint*)&frame)[i] = 0;
+    for(size_t i = 0; i < sizeof(frame); i++) ((uint8_t*)&frame)[i] = 0;
 
 
     /*
