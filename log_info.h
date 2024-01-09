@@ -1,5 +1,5 @@
 #ifndef LOG_INFO_H
-#define LOG_INFO_G
+#define LOG_INFO_H
 
 /*
  * Funkcje do zapisywania loga z działania programu
