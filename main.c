@@ -9,7 +9,6 @@
 #include "lora_read.h"
 #include "log_info.h"
 
-#define MESSAGE_SIZE sizeof(lora_frame)
 
 /* DEV_SPI
  * nazwa urządzenia w /dev/
@@ -136,7 +135,7 @@ int main(void) {
 
     log_info(0, "LoRa: %s", DEV_SPI);
     log_info(0, "Katalog wyjściowy: %s", OUT_DIR);
-    log_info(0, "Rozmiar ramki: %u", (unsigned int) MESSAGE_SIZE);
+    log_info(0, "Maksymalny rozmiar ramki: %u", (unsigned int) sizeof(lora_frame));
     log_info(0, "Czas oczekiwania na jeden bajt (timeout): %d ms",
             LORA_TIMEOUT);
 
@@ -159,13 +158,14 @@ int main(void) {
         /* zerowanie zmiennej przed każdym wczytaniem */
         for(size_t i = 0; i < sizeof(frame); i++) ((uint8_t*)&frame)[i] = 0;
 
-        read_frame(&frame, LORA_TIMEOUT, spi_fd, DEV_SPI, MESSAGE_SIZE);
+        read_frame(&frame, LORA_TIMEOUT, spi_fd, DEV_SPI);
+
+        /* TODO weryfikacja SHA */
 
         /* nazwa pliku:
         * out_name[out_dir_length] to pierwszy znak za ścieżką katalogu,
         * tzn. pierwszy znak numeru który chcemy wstawić/zmienić
         */
-        /* UWAGA UWAGA ta funkcja czasami wywala Bus Error */
         snprintf(&out_name[out_dir_length], digit_count, FORMAT_MSG_NUMBER, msg_number);
 
         /* otwieramy plik do zapisu */
@@ -191,3 +191,4 @@ int main(void) {
     free(out_name);
     return 0;
 }
+

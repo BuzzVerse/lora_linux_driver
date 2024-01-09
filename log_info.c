@@ -4,7 +4,20 @@
 #include <errno.h>
 #include "log_info.h"
 
-void log_info(int what, const char *format, ...) {
+static unsigned int _loginfo_getprefixsize(int what) {
+    unsigned int prefix_length = 0;
+    /* bardziej profesjonalnie byłoby coś w stylu strlen(),
+     * ale trzeba by wtedy uwzględnić UTF-8, bo wychodzą złe
+     * wyniki dla [BŁĄD]
+     * więc jest tak:
+     */
+    if (what & ERROR) prefix_length += 7;
+    if (what & WARN) prefix_length += 8;
+    if (what & INFO) prefix_length += 7;
+    return prefix_length;
+}
+
+int log_info(int what, const char *format, ...) {
     va_list arg;
     va_start(arg, format);
     if (what & ERROR) fprintf(stderr, "[BŁĄD] ");
@@ -15,8 +28,20 @@ void log_info(int what, const char *format, ...) {
     fputc('\n', stderr);
 
     if (what & ERR_STATUS) {
-        fprintf(stderr, "[INFO] Status errno: %d (%s)\n",
+        unsigned int prefix_length = _loginfo_getprefixsize(what);
+        if (prefix_length) fprintf(stderr, "%*c", prefix_length, ' ');
+        fprintf(stderr, "Status errno: %d (%s)\n",
                 errno, strerror(errno));
     }
+
+    return 0;
 }
 
+
+int _printwhere(int what, const char *file, unsigned long line) {
+    unsigned int prefix_length = _loginfo_getprefixsize(what);
+    if (prefix_length) fprintf(stderr, "%*c", prefix_length, ' ');
+
+    fprintf(stderr, "Plik: %s  Linia: %lu\n", file, line);
+    return 0;
+}

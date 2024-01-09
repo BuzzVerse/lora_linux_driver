@@ -6,6 +6,7 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #define ERROR       0x01
 #define WARN        0x02
@@ -34,6 +35,12 @@
  * wartość 0 oznacza, że podany komunikat ma być dopisany do loga bez
  * dodatków w stylu "[INFO]", "[BŁĄD]", itd.
  */
-void log_info(int what, const char *format, ...);
+int log_info(int what, const char *format, ...);
+
+
+int _printwhere(int what, const char *file, unsigned long line); /* private */
+
+#define log_debug(...) \
+    (log_info(INFO, __VA_ARGS__), _printwhere(INFO, __FILE__, __LINE__))
 
 #endif

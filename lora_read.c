@@ -56,7 +56,7 @@ start_poll:
     return -1;
 }
 
-int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, int MESSAGE_SIZE) {
+int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, const char* DEV_SPI) {
     size_t i;
 
     log_info(INFO, "Oczekiwanie na %s ...", DEV_SPI);
@@ -75,10 +75,10 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
         log_info(XERROR, "read_byte: Błąd odczytu '%s'", DEV_SPI);
         return -1;
     }
-    ((uint8_t*)&frame)[0] = x;
-    /*
-    log_info(INFO, "Wczytano 1. bit");
-    */
+    ((uint8_t*)frame)[0] = x;
+    
+    log_info(INFO, "Wczytano 1. bajt");
+    
 
     /* reszta nagłówka */
     for(i = 1; i < header_size; i++) {
@@ -90,7 +90,7 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
                     "Nie otrzymano kolejnego bajtu ramki");
             log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
             /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
-            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)sizeof(lora_frame));
             break;
         }
         else if (x == -2) {
@@ -103,27 +103,15 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
             log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
             return 1;
         }
-        ((uint8_t*)&frame)[i] = x;
+        ((uint8_t*)frame)[i] = x;
     }
-    /*
+
     log_info(INFO, "Wczytano nagłówek");
-    */
 
-    /* 
-    jeśli data_count przekroczy tyle, ile faktycznie pomieści 
-    pole data w ramce, to wypełni się całe pole data
-
-    TO-DO nie umiem zgrabnie wyciągnąć data_count z frame, 
-    działy się dziwne rzeczy i musiałem to zrobić tak jak poniżej.
-    Może później się to poprawi
-    */
-    size_t actual_data_count = ((uint8_t*)&frame)[10];
-    if(actual_data_count > 212) {
-        actual_data_count = 212;
-    }
+    log_info(INFO, "data_count = %u", (unsigned) frame->data_count);
 
     /* odczyt data biorąc pod uwagę data_count */
-    for(i = header_size; i < header_size + actual_data_count; i++) {
+    for(i = header_size; i < header_size + frame->data_count; i++) {
         x = read_byte(spi_fd, LORA_TIMEOUT);
 
         if (x == -1) {
@@ -132,7 +120,7 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
                     "Nie otrzymano kolejnego bajtu ramki");
             log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
             /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
-            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)sizeof(lora_frame));
             break;
         }
         else if (x == -2) {
@@ -145,7 +133,7 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
             log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
             return 1;
         }
-        ((uint8_t*)&frame)[i] = x;
+        ((uint8_t*)frame)[i] = x;
     }
     /*
     log_info(INFO, "Wczytano data");
@@ -161,7 +149,7 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
                     "Nie otrzymano kolejnego bajtu ramki");
             log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
             /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
-            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)sizeof(lora_frame));
             break;
         }
         else if (x == -2) {
@@ -176,10 +164,10 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
             return 1;
         }
 
-        ((uint8_t*)&frame)[i] = x;
+        ((uint8_t*)frame)[i] = x;
     }
 
-    if (i == (size_t)MESSAGE_SIZE) {
+    if (i == sizeof(lora_frame)) {
             /* nie przerwano for(), a więc nie było błędu I/O,
              * można wyświetlić info że zapisano i jest ok
              */
@@ -189,11 +177,11 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, i
     return 0;
 }
 
-int write_frame(lora_frame* frame, int out_fd, char* out_name) {
+int write_frame(lora_frame* frame, int out_fd, const char* out_name) {
     size_t i;
 
-    for(i = 0; i < sizeof(&frame); i++) {
-        if(write(out_fd, &(&frame)[i], 1) == -1) {
+    for(i = 0; i < sizeof(frame); i++) {
+        if(write(out_fd, &frame[i], 1) == -1) {
             log_info(ERROR, "write_frame(): błąd zapisu");
         }
     }
@@ -202,3 +190,4 @@ int write_frame(lora_frame* frame, int out_fd, char* out_name) {
 
     return 0;
 }
+

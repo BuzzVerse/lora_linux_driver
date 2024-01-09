@@ -19,8 +19,8 @@
  */
 int read_byte(int fd, int timeout);
 
-int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, int MESSAGE_SIZE);
+int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, const char* DEV_SPI);
 
-int write_frame(lora_frame* frame, int out_fd, char* out_name);
+int write_frame(lora_frame* frame, int out_fd, const char* out_name);
 
 #endif
