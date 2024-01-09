@@ -1,6 +1,8 @@
 #ifndef LORA_READ_H
 #define LORA_READ_H
 
+#include "lora_frame.h"
+
 /*
  * read_byte(int fd, int timeout)
  * odczytuje następny bajt z pliku o podanym deskryptorze fd
@@ -17,5 +19,8 @@
  */
 int read_byte(int fd, int timeout);
 
+int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, int MESSAGE_SIZE);
+
+int write_frame(lora_frame* frame, int out_fd, char* out_name);
 
 #endif

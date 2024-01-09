@@ -5,13 +5,14 @@
  * bo liczy numery od nowa
  */
 
-#include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
 
 #include "log_info.h"
+#include "lora_frame.h"
 
 int read_byte(int fd, int timeout) {
     unsigned char byte_buf;
@@ -55,4 +56,149 @@ start_poll:
     return -1;
 }
 
+int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, char* DEV_SPI, int MESSAGE_SIZE) {
+    size_t i;
 
+    log_info(INFO, "Oczekiwanie na %s ...", DEV_SPI);
+
+    size_t header_size = sizeof(frame->MAC) + sizeof(frame->packet_type) + sizeof(frame->packet_number) + sizeof(frame->packet_count) + sizeof(frame->data_count);
+
+    /* odczyt nagłówka (wszystkiego aż do danych = 11 bajtów) */
+    /* 1. bajt nagłówka */
+    int x = read_byte(spi_fd, -1);
+    if (x == -3) {
+        /* EOF, koniec pliku, więc nie ma sensu kontynuować */
+        log_info(ERROR, "Napotkano koniec pliku '%s', koniec.", DEV_SPI);
+        return 1;
+    }
+    if (x < 0) {
+        log_info(XERROR, "read_byte: Błąd odczytu '%s'", DEV_SPI);
+        return -1;
+    }
+    ((uint8_t*)&frame)[0] = x;
+    /*
+    log_info(INFO, "Wczytano 1. bit");
+    */
+
+    /* reszta nagłówka */
+    for(i = 1; i < header_size; i++) {
+        x = read_byte(spi_fd, LORA_TIMEOUT);
+        
+        if (x == -1) {
+            /* timeout */
+            log_info(XERROR, "read_byte(): TIMEOUT - "
+                    "Nie otrzymano kolejnego bajtu ramki");
+            log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
+            /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            break;
+        }
+        else if (x == -2) {
+            /* błąd odczytu z DEV_SPI */
+            log_info(XERROR, "read_byte(): Błąd odczytu '%s'", DEV_SPI);
+            break;
+        }
+        else if (x == -3) {
+            /* koniec pliku DEV_SPI */
+            log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
+            return 1;
+        }
+        ((uint8_t*)&frame)[i] = x;
+    }
+    /*
+    log_info(INFO, "Wczytano nagłówek");
+    */
+
+    /* 
+    jeśli data_count przekroczy tyle, ile faktycznie pomieści 
+    pole data w ramce, to wypełni się całe pole data
+
+    TO-DO nie umiem zgrabnie wyciągnąć data_count z frame, 
+    działy się dziwne rzeczy i musiałem to zrobić tak jak poniżej.
+    Może później się to poprawi
+    */
+    size_t actual_data_count = ((uint8_t*)&frame)[10];
+    if(actual_data_count > 212) {
+        actual_data_count = 212;
+    }
+
+    /* odczyt data biorąc pod uwagę data_count */
+    for(i = header_size; i < header_size + actual_data_count; i++) {
+        x = read_byte(spi_fd, LORA_TIMEOUT);
+
+        if (x == -1) {
+            /* timeout */
+            log_info(XERROR, "read_byte(): TIMEOUT - "
+                    "Nie otrzymano kolejnego bajtu ramki");
+            log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
+            /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            break;
+        }
+        else if (x == -2) {
+            /* błąd odczytu z DEV_SPI */
+            log_info(XERROR, "read_byte(): Błąd odczytu '%s'", DEV_SPI);
+            break;
+        }
+        else if (x == -3) {
+            /* koniec pliku DEV_SPI */
+            log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
+            return 1;
+        }
+        ((uint8_t*)&frame)[i] = x;
+    }
+    /*
+    log_info(INFO, "Wczytano data");
+    */
+
+    /* odczyt SHA */
+    for(i = header_size + sizeof(frame->data); i < sizeof(*frame); i++) {
+        x = read_byte(spi_fd, LORA_TIMEOUT);
+        
+        if (x == -1) {
+            /* timeout */
+            log_info(XERROR, "read_byte(): TIMEOUT - "
+                    "Nie otrzymano kolejnego bajtu ramki");
+            log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
+            /*log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);*/
+            log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
+            break;
+        }
+        else if (x == -2) {
+            /* błąd odczytu z DEV_SPI */
+            log_info(XERROR, "read_byte(): Błąd odczytu '%s'", DEV_SPI);
+            break;
+        }
+        else if (x == -3) {
+            /* koniec pliku DEV_SPI */
+            log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
+            close(spi_fd);
+            return 1;
+        }
+
+        ((uint8_t*)&frame)[i] = x;
+    }
+
+    if (i == (size_t)MESSAGE_SIZE) {
+            /* nie przerwano for(), a więc nie było błędu I/O,
+             * można wyświetlić info że zapisano i jest ok
+             */
+            log_info(INFO, "Zapisano ramkę LoRa do zmiennej");
+        }
+
+    return 0;
+}
+
+int write_frame(lora_frame* frame, int out_fd, char* out_name) {
+    size_t i;
+
+    for(i = 0; i < sizeof(&frame); i++) {
+        if(write(out_fd, &(&frame)[i], 1) == -1) {
+            log_info(ERROR, "write_frame(): błąd zapisu");
+        }
+    }
+
+    log_info(INFO, "Zapisano ramkę LoRa do pliku '%s'", out_name);
+
+    return 0;
+}

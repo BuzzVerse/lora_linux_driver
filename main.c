@@ -7,10 +7,9 @@
 #include <fcntl.h>
 
 #include "lora_read.h"
-#include "lora_frame.h"
 #include "log_info.h"
 
-#define MESSAGE_SIZE 8
+#define MESSAGE_SIZE sizeof(lora_frame)
 
 /* DEV_SPI
  * nazwa urządzenia w /dev/
@@ -95,11 +94,7 @@ char *out_name = NULL;
 
 
 int main(void) {
-
     lora_frame frame;
-
-    for(size_t i = 0; i < sizeof(frame); i++) ((uint8_t*)&frame)[i] = 0;
-
 
     /*
      * numer ramki: msg_number
@@ -161,88 +156,38 @@ int main(void) {
     log_info(INFO, "Otwarto plik SPI: %s", DEV_SPI);
 
     while(1) {
-        size_t i;
+        /* zerowanie zmiennej przed każdym wczytaniem */
+        for(size_t i = 0; i < sizeof(frame); i++) ((uint8_t*)&frame)[i] = 0;
 
-        log_info(INFO, "Oczekiwanie na %s ...", DEV_SPI);
-
-        int x = read_byte(spi_fd, -1);
-        if (x == -3) {
-            /* EOF, koniec pliku, więc nie ma sensu kontynuować */
-            log_info(ERROR, "Napotkano koniec pliku '%s', koniec.", DEV_SPI);
-            close(spi_fd);
-            free(out_name);
-            return 1;
-        }
-        if (x < 0) {
-            log_info(XERROR, "read_byte: Błąd odczytu '%s'", DEV_SPI);
-            continue;
-        }
-        /* przyszedł pierwszy bajt kolejnej ramki
-         * zrobić nowy plik i zapisać zawartość */
+        read_frame(&frame, LORA_TIMEOUT, spi_fd, DEV_SPI, MESSAGE_SIZE);
 
         /* nazwa pliku:
-         * out_name[out_dir_length] to pierwszy znak za ścieżką katalogu,
-         * tzn. pierwszy znak numeru który chcemy wstawić/zmienić
-         */
+        * out_name[out_dir_length] to pierwszy znak za ścieżką katalogu,
+        * tzn. pierwszy znak numeru który chcemy wstawić/zmienić
+        */
+        /* UWAGA UWAGA ta funkcja czasami wywala Bus Error */
         snprintf(&out_name[out_dir_length], digit_count, FORMAT_MSG_NUMBER, msg_number);
 
-        /* nazwa ok, otwieramy plik do zapisu */
-
+        /* otwieramy plik do zapisu */
         out_fd = open(out_name, O_WRONLY|O_CREAT|O_TRUNC, OUT_FILE_MODE);
         if (out_fd == -1) {
             /* błąd w open() */
             log_info(XERROR, "open(): Nie można otworzyć '%s' do zapisu", out_name);
             continue;
         }
-        if(write(out_fd, &x, 1) <= 0) {
-            log_info(XERROR, "write(): Błąd zapisu '%s'", out_name);
-        }
 
-        /* 1 bajt zapisano, teraz pora na pozostałe */
-        for(i = 1; i < MESSAGE_SIZE; i++) {
-            x = read_byte(spi_fd, LORA_TIMEOUT);
-            if (x == -1) {
-                /* timeout */
-                log_info(XERROR, "read_byte(): TIMEOUT - "
-                        "Nie otrzymano kolejnego bajtu ramki");
-                log_info(INFO, "LORA_TIMEOUT = %d", LORA_TIMEOUT);
-                log_info(INFO, "Nr ramki: " FORMAT_MSG_NUMBER, msg_number);
-                log_info(INFO, "Otrzymano %zu z %zu B", i, (size_t)MESSAGE_SIZE);
-                break;
-            }
-            else if (x == -2) {
-                /* błąd odczytu z DEV_SPI */
-                log_info(XERROR, "read_byte(): Błąd odczytu '%s'", DEV_SPI);
-                break;
-            }
-            else if (x == -3) {
-                /* koniec pliku DEV_SPI */
-                log_info(ERROR, "Napotkano koniec pliku '%s'", DEV_SPI);
-                close(out_fd);
-                close(spi_fd);
-                free(out_name);
-                return 1;
-            }
+        write_frame(&frame, out_fd, out_name);
+        /*
+        TO-DO komunikat o błędzie zapisu (gdy frame_write() zwraca coś innego niż 0)
+        */
 
-            if(write(out_fd, &x, 1) <= 0) {
-                /* błąd zapisu */
-                log_info(XERROR, "write(): Błąd zapisu '%s'", out_name);
-                break;
-            }
-        } /* end for */
         /* zapisano całą ramkę, można zamknąć plik */
         close(out_fd);
         out_fd = -1;
-        if (i == MESSAGE_SIZE) {
-            /* nie przerwano for(), a więc nie było błędu I/O,
-             * można wyświetlić info że zapisano i jest ok
-             */
-            log_info(INFO, "Zapisano ramkę LoRa do pliku '%s'", out_name);
-        }
+
         msg_number++;
     }
     close(spi_fd);
     free(out_name);
     return 0;
 }
-
