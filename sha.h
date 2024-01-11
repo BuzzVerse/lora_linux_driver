@@ -6,6 +6,22 @@
 
 
 /*
+ * sha_create
+ *
+ * Oblicza SHA-256 podanej ramki:
+ * - liczone dla wszystkich pól ramki, oprócz SHA256, które jest pomijane
+ * - dane w .data są wypełnione zerami do MAX_DATA_SIZE
+ *
+ * Parametry:
+ * frame: ramka LoRa
+ * output: bufor wyjściowy (32 bajty), do którego ma zostać zapisana obliczona
+ * suma kontrolna
+ *
+ * Nie zwraca żadnej wartości
+ */
+void sha_create(lora_frame *frame, void *output_buffer);
+
+/*
  * sha_verify
  *
  * Sprawdza, czy obliczona suma SHA-256 jest taka sama jak ta otrzymana

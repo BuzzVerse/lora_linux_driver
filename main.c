@@ -8,13 +8,14 @@
 
 #include "lora_read.h"
 #include "log_info.h"
+#include "sha.h"
 
 
 /* DEV_SPI
  * nazwa urządzenia w /dev/
  * to będzie coś w stylu /dev/spidevX.Y
  */
-#define DEV_SPI         "/dev/urandom" /* test */
+#define DEV_SPI         "test/ramki.dat"//"/dev/urandom" /* test */
 
 /* OUT_DIR
  * nazwa katalogu wyjściowego, do którego będą zapisywane otrzymane
@@ -64,7 +65,11 @@
 
 
 /*
- * TODO na później
+ * TODO
+ *
+ * - jeżeli napotkano koniec pliku to program się powinien kończyć
+ *
+ * na później
  * - nazwa pliku, do którego zapisuje się ramkę mogła by zawierać datę
  *   i godzinę kiedy ta ramka została otrzymana -- o ile na BeagleBone mamy
  *   dostępny jakiś zegar?
@@ -160,7 +165,15 @@ int main(void) {
 
         read_frame(&frame, LORA_TIMEOUT, spi_fd, DEV_SPI);
 
-        /* TODO weryfikacja SHA */
+#if 0
+
+        if(sha_verify(&frame) != 0) {
+            /* SHA się nie zgadza */
+            log_info(WARN, "Nieprawidłowa ramka, zła suma kontrolna (SHA-256)");
+            continue; /* nie nasze albo uszkodzone, nie zapisujemy */
+        }
+
+#endif
 
         /* nazwa pliku:
         * out_name[out_dir_length] to pierwszy znak za ścieżką katalogu,

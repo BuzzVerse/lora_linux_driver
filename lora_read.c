@@ -5,6 +5,7 @@
  * bo liczy numery od nowa
  */
 
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -69,7 +70,8 @@ int read_frame(lora_frame* frame, int LORA_TIMEOUT, int spi_fd, const char* DEV_
     if (x == -3) {
         /* EOF, koniec pliku, więc nie ma sensu kontynuować */
         log_info(ERROR, "Napotkano koniec pliku '%s', koniec.", DEV_SPI);
-        return 1;
+        // TODO zrobić ładną obsługe błedu w main()
+        exit(1);
     }
     if (x < 0) {
         log_info(XERROR, "read_byte: Błąd odczytu '%s'", DEV_SPI);

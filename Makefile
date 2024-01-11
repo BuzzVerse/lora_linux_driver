@@ -5,6 +5,9 @@ all: lora_read directories
 lora_read: *.c
 	gcc $^ -o $@ -Wall -Wextra -g
 
+test_frame: test/test_frame.c sha.c sha256.c log_info.c
+	gcc $^ -o $@ -Wall -Wextra -g
+
 OUTPUT_DIR := ramki
 
 directories:

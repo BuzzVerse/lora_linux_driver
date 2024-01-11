@@ -1,5 +1,5 @@
 /*
-    SHA256 implementation
+    SHA256 implementation, source file.
 
     This implementation was written by Kent "ethereal" Williams-King and is
     hereby released into the public domain. Do what you wish with it.

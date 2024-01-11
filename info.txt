@@ -1,0 +1,8 @@
+
+cały kod testu ma być w tym osobnym katalogu
+
+w ten sposób żeby skompilować główny program wystarczy wziąć *.c
+(zamiast wymieniać poszczególne pliki)
+
+no i później raczej będzie więcej testów,
+więc dzięki temu się nie wymieszają testy z programem
