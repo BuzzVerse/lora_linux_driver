@@ -10,7 +10,7 @@
 - `LORA NSS   : P9.17`
 - `LORA RESET : 3.3V`
 
-{lease refer to: [this pin map](https://toptechboy.com/beaglebone-black-lesson-1-understanding-beaglebone-black-pinout/beaglebone-black-pinout/)
+Please refer to: [this pin map](https://toptechboy.com/beaglebone-black-lesson-1-understanding-beaglebone-black-pinout/beaglebone-black-pinout/)
 
 **NOTE: All conections should be made when the device is turned off**
 
