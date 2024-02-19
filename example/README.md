@@ -32,7 +32,7 @@ Note that `-static` is used to avoid problems with `libc` version incompatibilit
 ## Send the code to Beaglebone:
 
 ```bash
-scp spi_tes debian@192.168.7.2:/home/debian
+scp spi_test debian@192.168.7.2:/home/debian
 ```
 
 # Run on target
