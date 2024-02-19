@@ -15,7 +15,7 @@
  * @param fd - file descriptor
  * @param reg - register address
  * @param value - value to write
-*/
+ */
 void spi_write_register(int fd, uint8_t reg, uint8_t value) {
     uint8_t tx[] = {reg | SPI_WRITE, value};
     uint8_t rx[2] = {0, 0};
@@ -37,7 +37,7 @@ void spi_write_register(int fd, uint8_t reg, uint8_t value) {
  * @param fd - file descriptor
  * @param reg - register address
  * @return - value from register
-*/
+ */
 uint8_t spi_read_register(int fd, uint8_t reg) {
     uint8_t tx[] = {reg | SPI_READ, 0x00}; // We are sending register address and 0x00 to push out data from slave
     uint8_t rx[2] = {0, 0};
@@ -58,10 +58,12 @@ uint8_t spi_read_register(int fd, uint8_t reg) {
 }
 
 /**
- * Function to initialize SPI device
+ * Function to initialize SPI device.
+ * 
+ * Note: At the end of the program, you should call deinit function to close SPI device.
+ * 
  * @return - fd - file descriptor for SPI device. If initialization fails, 0 is returned.
-
-*/
+ */
 int init(const char* spi_device_file_path) {
     
     int fd;
@@ -100,11 +102,17 @@ int init(const char* spi_device_file_path) {
     printf("SPI device was successfully initialized\n");
     return fd;
 }
-
+/**
+ * Function to close SPI device. Should be called at the end of the program,
+ * to release resources.
+ * 
+ * @param fd - file descriptor
+ */
 void deinit(int fd) {
     close(fd);
     printf("SPI device was successfully closed\n");
 }
+
 
 int main() {
 
