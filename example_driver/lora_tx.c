@@ -69,17 +69,13 @@ int main()
 	
 	printf("RegOpMode at 0x%02X has value: 0x%02X\n", REG_OP_MODE, spi_read_register(fd, REG_OP_MODE));
 
-	// Set the chip to sleep
-	//spi_write_register(fd, REG_OP_MODE, FSK_OOK_SLEEP);
+	// Set LoRa Sleep mode
+	spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
 
-	// Set LoRa mode + Sleep mode
-	// TODO check if possible to instantly set LORA_SLEEP or if FSK/OOK sleep neds to be set first
-	//spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
+	// Set LoRa Standby mode
+	spi_write_register(fd, REG_OP_MODE, LORA_STANDBY);
 
-	//printf("Register at 0x%02X has value: 0x%02X\n", REG_OP_MODE, spi_read_register(fd, REG_OP_MODE));
-
-	// Set LoRa + Standby mode
-	//spi_write_register(fd, REG_OP_MODE, LORA_STANDBY);
+	printf("RegOpMode at 0x%02X has value: 0x%02X\n", REG_OP_MODE, spi_read_register(fd, REG_OP_MODE));
 
 	// FifoAddrPtr located under 0x0D (default value: 0x00)
 	printf("FifoAddrPtr at 0x%02X has value: 0x%02X\n", FIFO_ADDR_PTR, spi_read_register(fd, FIFO_ADDR_PTR));

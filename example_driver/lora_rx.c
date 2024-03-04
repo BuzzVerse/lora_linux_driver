@@ -6,6 +6,8 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
+#include "lora_registers.h"
+
 #define SPI_SPEED_HZ	500000
 #define SPI_WRITE	0x80
 #define SPI_READ	0x00
@@ -65,21 +67,23 @@ int main()
         	return 1;
     	}
 
-    	int i = 0;
-    	// Read registers from 0x00 to 0x70
-    	for (uint8_t reg = 0x00; reg <= 0x70; reg++) {
-        	uint8_t value = spi_read_register(fd, reg);
-		//uint8_t value = reg;		// for testing purposes
-        	printf("Register at 0x%02X has value: 0x%02X\n", reg, value);
-		values[i] = value;
-		i++;
-    	}
+	// To enable communication, LoRa has to be set in LoRa Standby mode
+	// Default mode is FSK/OOK Standby
+	// FSK/OOK and LoRa modes can only be switched in Sleep mode, therefore the order of operations is as follows:
+	// 1) Set LoRa Sleep mode
+	// 2) Set LoRa Standby mode
 
-	// Set LoRa to Standby mode
+	// 1) Set LoRa Sleep mode
+	spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
+
+    	// 2) Set LoRa Standby mode
+	spi_write_register(fd, REG_OP_MODE, LORA_STANDBY);
 
 	// Set FifoAddrPtr to FifoRxBaseAddr
+	//spi_write_register(fd, FIFO_ADDR_PTR, FIFO_RX_BASE_ADDR);
 
-	// Mode request: RX Single - ? to initiate receive operation
+	// Mode request: RX Continuous to initiate receive operation
+	//spi_write_register(fd, REG_OP_MODE, LORA_RX_CONT);
 
 	// Radio automatically returns to Standby mode
 
