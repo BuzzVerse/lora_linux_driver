@@ -67,15 +67,15 @@ int main()
         	return 1;
     	}
 	
-	printf("RegOpMode at 0x%02X has value: 0x%02X\n", REG_OP_MODE, spi_read_register(fd, REG_OP_MODE));
+	printf("RegOpMode at 0x%02X has value: 0x%02X\n", OP_MODE, spi_read_register(fd, OP_MODE));
 
 	// Set LoRa Sleep mode
-	spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
+	spi_write_register(fd, OP_MODE, LORA_SLEEP);
 
 	// Set LoRa Standby mode
-	spi_write_register(fd, REG_OP_MODE, LORA_STANDBY);
+	spi_write_register(fd, OP_MODE, LORA_STANDBY);
 
-	printf("RegOpMode at 0x%02X has value: 0x%02X\n", REG_OP_MODE, spi_read_register(fd, REG_OP_MODE));
+	printf("RegOpMode at 0x%02X has value: 0x%02X\n", OP_MODE, spi_read_register(fd, OP_MODE));
 
 	// FifoAddrPtr located under 0x0D (default value: 0x00)
 	printf("FifoAddrPtr at 0x%02X has value: 0x%02X\n", FIFO_ADDR_PTR, spi_read_register(fd, FIFO_ADDR_PTR));
@@ -83,18 +83,23 @@ int main()
 	// FifoTxBaseAddr located under 0x0E (default value 0x80)
 	printf("FifoTxBaseAddr at 0x%02X has value: 0x%02X\n", FIFO_TX_BASE_ADDR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
 
-	// Set FifoPtrAddr to FifoTxPtrBase
+	// Fill the FIFO with data to transmit:
+	// 1) Set FifoPtrAddr to FifoTxPtrBase
 	// spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
 
-	// Write PayloadLength bytes to the FIFO (RegFifo)
+	// 2) Write PayloadLength bytes to the FIFO (RegFifo)
+	// TODO rethink
+	/*for(uin8_t i = 0x00; i < spi_read_register(fd, PAYLOAD_LENGTH); i++) {
+		spi_write_register(fd, FIFO, 0xAB);
+	}*/
 
 	// Set TX mode to initiate data transmission
 	// CAUTION: DO NOT initiate transmission unless antenna is attached to LoRa
-	// spi_write_register(fd, REG_OP_MODE, LORA_TX);
-	// TODO wait for some time?
+	// spi_write_register(fd, OP_MODE, LORA_TX);
+	// TODO wait for some time? maybe check the TxDone interrupt?
 
 	// Put LoRa in Sleep mode
-	// spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
+	// spi_write_register(fd, OP_MODE, LORA_SLEEP);
 	
 	close(fd);
 

@@ -74,20 +74,33 @@ int main()
 	// 2) Set LoRa Standby mode
 
 	// 1) Set LoRa Sleep mode
-	spi_write_register(fd, REG_OP_MODE, LORA_SLEEP);
+	spi_write_register(fd, OP_MODE, LORA_SLEEP);
 
     	// 2) Set LoRa Standby mode
-	spi_write_register(fd, REG_OP_MODE, LORA_STANDBY);
+	spi_write_register(fd, OP_MODE, LORA_STANDBY);
 
 	// Set FifoAddrPtr to FifoRxBaseAddr
 	//spi_write_register(fd, FIFO_ADDR_PTR, FIFO_RX_BASE_ADDR);
 
 	// Mode request: RX Continuous to initiate receive operation
-	//spi_write_register(fd, REG_OP_MODE, LORA_RX_CONT);
+	//spi_write_register(fd, OP_MODE, LORA_RX_CONT);
+
+	// TODO: wait?
 
 	// Radio automatically returns to Standby mode
+	printf("OP_MODE: 0x%02X \n", spi_read_register(fd, OP_MODE));
 
-	// Read received payload from the FIFO
+	// Ensure that ValidHeader, PayloadCrcError, RxDone and RxTimeout interrputs in the status register RegIrqFlags are not asserted to ensure that packet reception has terminated successfully (i.e. no flags should be set).
+	// In case of errors: skip the following steps and discard the packet
+	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
+
+	// Read received payload from the FIFO - datasheet page 41
+	// 1) Set RegFifoAddrPtr to RegFifoRxCurrentAddr = set the FIFO pointer to the location of the last packet received in the FIFO
+	//spi_write_register(fd, FIFO_ADDR_PTR, FIFO_RX_CURRENT_ADDR);
+	// 2) Read the register RegFifo, RegRxNbBytes times
+	for(uint8_t i = 0x00; i < spi_read_register(fd, FIFO_RX_BYTES_NB); i++) {
+		printf("0x%02X", spi_read_register(fd, FIFO));
+	}
 	
 	close(fd);
 
