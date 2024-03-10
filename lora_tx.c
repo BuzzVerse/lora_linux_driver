@@ -71,27 +71,18 @@ int main()
 
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
-	spi_write_register(fd, OP_MODE, LORA_SLEEP); // there is a small delay between calling spi_write_register() and the register value being actually written, hence the need to wait for a while
-	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {
-		printf(".");
-	}
-	printf(" LORA_SLEEP set.\n");
+	spi_write_register(fd, OP_MODE, LORA_SLEEP);
+	// there is a small delay between calling spi_write_register()
+	// and the register value being actually written, 
+	// hence the need to wait for a while
+	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
+	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	// Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
 	spi_write_register(fd, OP_MODE, LORA_STANDBY); 
-	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {
-		printf(".");
-	}
-	printf(" LORA_STANDBY set.\n");
-
-	printf("[After setting] OP_MODE: 0x%02X\n", spi_read_register(fd, OP_MODE));
-
-	// FifoAddrPtr located under 0x0D (default value: 0x00)
-	printf("FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
-
-	// FifoTxBaseAddr located under 0x0E (default value 0x80)
-	printf("FIFO_TX_BASE_ADDR: 0x%02X\n", spi_read_register(fd, FIFO_TX_BASE_ADDR));
+	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
+	printf(" LORA_STANDBY set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	// Fill the FIFO with data to transmit:
 	// 1) Set FifoPtrAddr to FifoTxPtrBase
@@ -99,19 +90,18 @@ int main()
 	printf("[After setting] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
 	// 2) Write 4 bytes to the FIFO
-	// TODO rethink
-	for(int i = 0; i < 4; i++) {
+	for(uint8_t i = 0x00; i < 0x04; i++) {
+		printf("[%d] Writing to FIFO_ADDR_PTR: 0x%02X\n", i, spi_read_register(fd, FIFO_ADDR_PTR));
 		spi_write_register(fd, FIFO, 0xAF);
-		printf("[Writing...: %d] FIFO_ADDR_PTR: 0x%02X\n", i, spi_read_register(fd, FIFO_ADDR_PTR));
 	}
 	printf("[After writing to FIFO] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
-	// 1) Set FifoPtrAddr to FifoTxPtrBase
+	// Set FifoPtrAddr to FifoTxPtrBase to read written data
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
 	printf("[After setting] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
-	for(uint8_t i = 0; i < 4; i++) {
-		printf("[Reading...: %d] FIFO_ADDR_PTR: 0x%02X, FIFO data: 0x%02X\n", i, spi_read_register(fd, FIFO_ADDR_PTR), spi_read_register(fd, FIFO));
+	for(uint8_t i = 0x00; i < 0x04; i++) {
+		printf("[%d] Reading from FIFO_ADDR_PTR: 0x%02X, FIFO data: 0x%02X \n", i, spi_read_register(fd, FIFO_ADDR_PTR), spi_read_register(fd, FIFO));
 	}
 
 	// Set TX mode to initiate data transmission
@@ -122,12 +112,9 @@ int main()
 	// Put LoRa in Sleep mode
 	printf("Setting LORA_SLEEP...");
 	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {
-		printf(".");
-	}
-	printf(" LORA_SLEEP set.\n");
+	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
+	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	close(fd);
-
 	return 0;
 }
