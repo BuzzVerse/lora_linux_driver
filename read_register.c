@@ -39,17 +39,21 @@ uint8_t spi_read_register(int fd, uint8_t reg) {
 
 int main(int argc, char* argv[])
 {
-	uint8_t reg = strtol(argv[1], NULL, 16);
+	if(argc == 3) {
+		uint8_t reg = strtol(argv[2], NULL, 16);
 
-	int fd = open("/dev/spidev0.0", O_RDWR);
-    	if (fd == 0) {
-        	perror("Can't open device. Check permissions and if file exists");
-        	return 1;
-    	}
+		int fd = open(argv[1], O_RDWR);
+    		if (fd == 0) {
+        		perror("Can't open device. Check permissions and if file exists");
+        		return 1;
+    		}
 
-	printf("Register at 0x%02X has value: 0x%02X \n", reg, spi_read_register(fd, reg));
+		printf("Register at 0x%02X has value: 0x%02X \n", reg, spi_read_register(fd, reg));
 
-	close(fd);
+		close(fd);
+	} else {
+		printf("Usage example: sudo ./read_register /dev/spidev0.0 0x01 \n");
+	}
 
 	return 0;
 }
