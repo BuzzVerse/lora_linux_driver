@@ -9,11 +9,6 @@
 #include "lora_registers.h"
 #include "spi_io.h"
 
-#define SPI_SPEED_HZ	500000
-#define SPI_WRITE	0x80
-#define SPI_READ	0x00
-
-
 int main()
 {
 	int fd = open("/dev/spidev1.0", O_RDWR);
