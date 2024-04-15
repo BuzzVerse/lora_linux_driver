@@ -10,3 +10,6 @@ spi_io.o: ./src/spi_io.c
 lora_rx: lora_rx.o spi_io.o
 	arm-linux-gnueabihf-gcc -static -o ./build/lora_rx.o ./build/spi_io.o
 
+lora_tx: lora_tx.o spi_io.o
+	arm-linux-gnueabihf-gcc -static -o ./build/lora_tx.o ./build/spi_io.o
+
