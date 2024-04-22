@@ -73,11 +73,6 @@ int main()
 	spi_write_register(fd, DIO_MAPPING_2, 0x30);
 	spi_write_register(fd, MAX_PAYLOAD_LENGTH, 0x40);
 	
-	// Set modem (set LoRa mode)
-	//spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	
-
-
 	// To enable communication, LoRa has to be set in LoRa Standby mode
 	// Default mode is FSK/OOK Standby
 	// FSK/OOK and LoRa modes can only be switched in Sleep mode, therefore the order of operations is as follows:
@@ -147,7 +142,13 @@ int main()
 	int i = 16;
 	uint8_t irq_value = 0x00;
 	//while((spi_read_register(fd, IRQ_FLAGS) & 0x40)!= 0x40) {}
-	while(i > 0) { if(spi_read_register(fd, IRQ_FLAGS) != irq_value) {i--; irq_value = spi_read_register(fd, IRQ_FLAGS); printf("[Inside while loop] IRQ_FLAGS: 0x%02X\n", irq_value);} }
+	while(i > 0) {
+        if(spi_read_register(fd, IRQ_FLAGS) != irq_value) {
+            i--;
+            irq_value = spi_read_register(fd, IRQ_FLAGS);
+            printf("[Inside while loop] IRQ_FLAGS: 0x%02X\n", irq_value);
+        }
+    }
 	//printf("Press ENTER to cancel RX...\n");
 	//getchar();
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));

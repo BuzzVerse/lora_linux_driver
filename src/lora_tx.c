@@ -135,8 +135,6 @@ int main()
 	spi_write_register(fd, OP_MODE, LORA_TX);
 	// Wait until TxDone interrupt is set
 	while((spi_read_register(fd, IRQ_FLAGS) & 0x08) != 0x08) {}
-	//printf("Press ENTER to cancel TX...\n");
-	//getchar();
 	printf("Packet sent successfully - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
 	spi_write_register(fd, IRQ_FLAGS, 0x08);
 
