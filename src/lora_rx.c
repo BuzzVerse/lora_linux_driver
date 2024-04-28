@@ -16,7 +16,8 @@ int main()
         	perror("Can't open device. Check permissions and if file exists");
         	return 1;
     	}
-	// TODO Reset the chip - must be done outside this program, by setting the RST pin on the chip
+	// Reset the chip
+	
 
 	// RX chain calibration
 	// Save initial values:
@@ -88,42 +89,39 @@ int main()
 	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
 	printf(" LORA_SLEEP set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
-	
-	// Set MODEM_CONFIG_3 to 0x04
-	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
-	
-	// Set PA_CONFIG to 0x8F
-	spi_write_register(fd, PA_CONFIG, 0x8F);
 
-    	// 2) Set LoRa Standby mode
+
+	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
+	spi_write_register(fd, PA_CONFIG, 0x8F);
+    spi_write_register(fd, FR_MSB, 0x6C); // default: 0x6C
+	spi_write_register(fd, FR_MID, 0x40);
+	spi_write_register(fd, FR_LSB, 0x00); // default: 0x00
+	//spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+	//spi_write_register(fd, MODEM_CONFIG_1, 0x72);
+	spi_write_register(fd, DETECT_OPTIMIZE, 0xC3);
+	spi_write_register(fd, DETECTION_THRESHOLD, 0x0A);
+	spi_write_register(fd, MODEM_CONFIG_2, 0xC0);
+	spi_write_register(fd, MODEM_CONFIG_1, 0x48);
+
+    // 2) Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
 	spi_write_register(fd, OP_MODE, LORA_STANDBY);
 	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
 	printf(" LORA_STANDBY set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
-	// Set FR_MSB to 0x6C (default)
-	spi_write_register(fd, FR_MSB, 0x6C);
-	
-	// Set FR_MID to 0x40
-	spi_write_register(fd, FR_MID, 0x40);
-
-	// Set FR_LSB to 0x00 (default)
-	spi_write_register(fd, FR_LSB, 0x00);
-
-	// Set MODEM_CONFIG_2 to 0x74
-	spi_write_register(fd, MODEM_CONFIG_2, 0x74);
-	
-	// Set MODEM_CONFIG_1 to 0x72
-	spi_write_register(fd, MODEM_CONFIG_1, 0x72);
-
-	// Set DETECT_OPTIMIZE to 0xC3
-	spi_write_register(fd, DETECT_OPTIMIZE, 0xC3);
-
-	// Set DETECTION_THRESHOLD to 0x0A
-	spi_write_register(fd, DETECTION_THRESHOLD, 0x0A);
-
+	//spi_write_register(fd, FR_MSB, 0x6C); // default: 0x6C
+	//spi_write_register(fd, FR_MID, 0x40);
+	//spi_write_register(fd, FR_LSB, 0x00); // default: 0x00
+	//spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+	//spi_write_register(fd, MODEM_CONFIG_2, 0xC0);
+	//spi_write_register(fd, MODEM_CONFIG_1, 0x72);
+	//spi_write_register(fd, MODEM_CONFIG_1, 0x48);
+	//spi_write_register(fd, DETECT_OPTIMIZE, 0xC3);
+	//spi_write_register(fd, DETECTION_THRESHOLD, 0x0A);
 	// Set MODEM_CONFIG_2 to 0x74 again?
-	spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+	//spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+
+
 
 	// Set FifoAddrPtr to FifoRxBaseAddr
 	spi_write_register(fd, FIFO_ADDR_PTR, FIFO_RX_BASE_ADDR);
@@ -132,6 +130,7 @@ int main()
 	// Mode request: RX Continuous to initiate receive operation
 	printf("Initiating RX...");
 	spi_write_register(fd, OP_MODE, LORA_RX_CONT);
+	sleep((double)0.1);
 	printf(" RX_CONT set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
 
@@ -147,10 +146,10 @@ int main()
             i--;
             irq_value = spi_read_register(fd, IRQ_FLAGS);
             printf("[Inside while loop] IRQ_FLAGS: 0x%02X\n", irq_value);
+	    if(spi_read_register(fd, IRQ_FLAGS) == 0x50) // 0x05 = RxDone interrupt
+		    break;
         }
     }
-	//printf("Press ENTER to cancel RX...\n");
-	//getchar();
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
 
 	// write 1 to clear the interrupt
@@ -158,7 +157,8 @@ int main()
 	// Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
 	spi_write_register(fd, OP_MODE, LORA_STANDBY);
-	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
+	//while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
+	sleep((double)0.1);
 	printf(" LORA_STANDBY set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	// Ensure that ValidHeader, PayloadCrcError, RxDone and RxTimeout interrputs in the status register RegIrqFlags are not asserted to ensure that packet reception has terminated successfully (i.e. no flags should be set).
@@ -168,17 +168,20 @@ int main()
 	// Read received payload from the FIFO - datasheet page 41
 	// 1) Set RegFifoAddrPtr to RegFifoRxCurrentAddr = set the FIFO pointer to the location of the last packet received in the FIFO
 	// Currently reads the whole RX FIFO (set AddrPtr to RxBaseAddr)
-	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_RX_BASE_ADDR));
-	while(spi_read_register(fd, FIFO_ADDR_PTR) != spi_read_register(fd, FIFO_RX_BASE_ADDR)) {}
+	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_RX_CURRENT_ADDR));
+	//while(spi_read_register(fd, FIFO_ADDR_PTR) != spi_read_register(fd, FIFO_RX_BASE_ADDR)) {}
+	sleep((double)0.1);
 	// 2) Read the register RegFifo, RegRxNbBytes times
-	for(uint8_t i = 0x00; i < 0xFF; i++) {
+	printf("NB BYTES: 0x%02X\n", spi_read_register(fd, 0x13));
+	for(uint8_t i = 0x00; i < spi_read_register(fd, FIFO_RX_BYTES_NB); i++) {
 		printf("[%d] Reading from FIFO_ADDR_PTR: 0x%02X, FIFO data: 0x%02X \n", i, spi_read_register(fd, FIFO_ADDR_PTR), spi_read_register(fd, FIFO));
 	}
 	
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
 	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
+	//while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
+	sleep((double)0.1);
 	printf(" LORA_SLEEP set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	close(fd);

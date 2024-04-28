@@ -89,17 +89,18 @@ int main()
 	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
 	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
-	spi_write_register(fd, LNA, 0x23);
+	//spi_write_register(fd, LNA, 0x23);
 	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
 	spi_write_register(fd, PA_CONFIG, 0x8F);
 	spi_write_register(fd, FR_LSB, 0x6C);
 	spi_write_register(fd, FR_MID, 0x40);
 	spi_write_register(fd, FR_MSB, 0x00);
-	spi_write_register(fd, MODEM_CONFIG_2, 0x74);
-	spi_write_register(fd, MODEM_CONFIG_1, 0x72);
+	//spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+	//spi_write_register(fd, MODEM_CONFIG_1, 0x72);
 	spi_write_register(fd, DETECT_OPTIMIZE, 0xC3);
 	spi_write_register(fd, DETECTION_THRESHOLD, 0x0A);
-	spi_write_register(fd, MODEM_CONFIG_2, 0x74);
+	spi_write_register(fd, MODEM_CONFIG_2, 0xC0);
+	spi_write_register(fd, MODEM_CONFIG_1, 0x48);
 
 	// Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
@@ -133,8 +134,11 @@ int main()
 	// Set TX mode to initiate data transmission
 	// CAUTION: DO NOT initiate transmission unless antenna is attached to LoRa
 	spi_write_register(fd, OP_MODE, LORA_TX);
+	printf("Before loop - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
 	// Wait until TxDone interrupt is set
-	while((spi_read_register(fd, IRQ_FLAGS) & 0x08) != 0x08) {}
+	while((spi_read_register(fd, IRQ_FLAGS) & 0x08) != 0x08) {
+		//printf("Inside loop - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
+	}
 	printf("Packet sent successfully - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
 	spi_write_register(fd, IRQ_FLAGS, 0x08);
 
