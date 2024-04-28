@@ -79,9 +79,6 @@ int main()
 	// FSK/OOK and LoRa modes can only be switched in Sleep mode, therefore the order of operations is as follows:
 	// 1) Set LoRa Sleep mode
 	// 2) Set LoRa Standby mode
-	
-	// Set LowFreqMode off? and remember to keep it set
-	//spi_write_register(fd, OP_MODE, 0x01);
 
 	// 1) Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
@@ -150,7 +147,16 @@ int main()
 		    break;
         }
     }
-	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
+	//printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
+    uint8_t flags = spi_read_register(fd, IRQ_FLAGS);
+    if((flags & 0x80) == 0x80) { printf("[IRQ_FLAGS] RxTimeout\n"); }
+    if((flags & 0x40) == 0x40) { printf("[IRQ_FLAGS] RxDone\n"); }
+    if((flags & 0x20) == 0x20) { printf("[IRQ_FLAGS] PayloadCrcError\n"); }
+    if((flags & 0x10) == 0x10) { printf("[IRQ_FLAGS] ValidHeader\n"); }
+    if((flags & 0x08) == 0x08) { printf("[IRQ_FLAGS] TxDone\n"); }
+    if((flags & 0x04) == 0x04) { printf("[IRQ_FLAGS] CadDone\n"); }
+    if((flags & 0x02) == 0x02) { printf("[IRQ_FLAGS] FhssChangeChannel\n"); }
+    if((flags & 0x01) == 0x01) { printf("[IRQ_FLAGS] CadDetected\n"); }
 
 	// write 1 to clear the interrupt
 	spi_write_register(fd, IRQ_FLAGS, 0x40);
@@ -163,16 +169,14 @@ int main()
 
 	// Ensure that ValidHeader, PayloadCrcError, RxDone and RxTimeout interrputs in the status register RegIrqFlags are not asserted to ensure that packet reception has terminated successfully (i.e. no flags should be set).
 	// In case of errors: skip the following steps and discard the packet
-	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
+	//printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
 
 	// Read received payload from the FIFO - datasheet page 41
-	// 1) Set RegFifoAddrPtr to RegFifoRxCurrentAddr = set the FIFO pointer to the location of the last packet received in the FIFO
-	// Currently reads the whole RX FIFO (set AddrPtr to RxBaseAddr)
+	// 1) Set the FIFO pointer to the location of the last packet received in the FIFO
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_RX_CURRENT_ADDR));
-	//while(spi_read_register(fd, FIFO_ADDR_PTR) != spi_read_register(fd, FIFO_RX_BASE_ADDR)) {}
 	sleep((double)0.1);
 	// 2) Read the register RegFifo, RegRxNbBytes times
-	printf("NB BYTES: 0x%02X\n", spi_read_register(fd, 0x13));
+	printf("NB BYTES: 0x%02X\n", spi_read_register(fd, FIFO_RX_BYTES_NB));
 	for(uint8_t i = 0x00; i < spi_read_register(fd, FIFO_RX_BYTES_NB); i++) {
 		printf("[%d] Reading from FIFO_ADDR_PTR: 0x%02X, FIFO data: 0x%02X \n", i, spi_read_register(fd, FIFO_ADDR_PTR), spi_read_register(fd, FIFO));
 	}
