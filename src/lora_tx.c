@@ -114,7 +114,7 @@ int main()
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
 	printf("[After setting] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
-	spi_write_register(fd, PAYLOAD_LENGTH, 0x08);
+	spi_write_register(fd, PAYLOAD_LENGTH, 0x10);
 	printf("PAYLOAD_LENGTH: 0x%02X \n", spi_read_register(fd, PAYLOAD_LENGTH));
 
 	// 2) Write PAYLOAD_LENGTH bytes to the FIFO

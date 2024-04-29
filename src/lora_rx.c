@@ -11,6 +11,7 @@
 
 void print_modem_status(int fd) {
     uint8_t modem_status = spi_read_register(fd, MODEM_STATUS);
+	sleep((double)0.1);
     if((modem_status & 0x10) == 0x10) { printf("    [MODEM_STATUS] Modem clear\n"); }
     if((modem_status & 0x08) == 0x08) { printf("    [MODEM_STATUS] Header info valid\n"); }
     if((modem_status & 0x04) == 0x04) { printf("    [MODEM_STATUS] RX on-going\n"); }
@@ -20,6 +21,7 @@ void print_modem_status(int fd) {
 
 void print_irq_flags(int fd) {
     uint8_t irq_flags = spi_read_register(fd, IRQ_FLAGS);
+	sleep((double)0.1);
     if((irq_flags & 0x80) == 0x80) { printf("[IRQ_FLAGS] RxTimeout\n"); }
     if((irq_flags & 0x40) == 0x40) { printf("[IRQ_FLAGS] RxDone\n"); }
     if((irq_flags & 0x20) == 0x20) { printf("[IRQ_FLAGS] PayloadCrcError\n"); }
@@ -28,7 +30,6 @@ void print_irq_flags(int fd) {
     if((irq_flags & 0x04) == 0x04) { printf("[IRQ_FLAGS] CadDone\n"); }
     if((irq_flags & 0x02) == 0x02) { printf("[IRQ_FLAGS] FhssChangeChannel\n"); }
     if((irq_flags & 0x01) == 0x01) { printf("[IRQ_FLAGS] CadDetected\n"); }
-
 }
 
 int main()
@@ -187,6 +188,7 @@ int main()
 	printf(" LORA_STANDBY set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
+    print_irq_flags(fd);
     print_modem_status(fd); 
 
 	// write 1 to clear the interrupt
@@ -201,7 +203,6 @@ int main()
 	// Read received payload from the FIFO - datasheet page 41
 	// 1) Set the FIFO pointer to the location of the last packet received in the FIFO
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_RX_CURRENT_ADDR));
-	sleep((double)0.1);
 	// 2) Read the register RegFifo, RegRxNbBytes times
     uint8_t nb_bytes = spi_read_register(fd, FIFO_RX_BYTES_NB);
     uint8_t fifo_addr_ptr;
