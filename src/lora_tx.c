@@ -101,6 +101,7 @@ int main()
 	spi_write_register(fd, DETECTION_THRESHOLD, 0x0A);
 	spi_write_register(fd, MODEM_CONFIG_2, 0xC0);
 	spi_write_register(fd, MODEM_CONFIG_1, 0x48);
+    spi_write_register(fd, PREAMBLE_LENGTH_LSB, 0x00);
 
 	// Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
