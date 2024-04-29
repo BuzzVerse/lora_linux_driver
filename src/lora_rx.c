@@ -162,11 +162,14 @@ int main()
 	// Wait until RX_DONE interrupt is set
 	// The if statement inside the loop prints the value of IRQ_FLAGS if it changes
 	// i is a very primitive way to exit the while loop after a couple IRQ change detections
-	int i = 16;
+	int i = 64;
 	uint8_t irq_value = 0x00;
     uint8_t modem_status = 0x10;
 	//while((spi_read_register(fd, IRQ_FLAGS) & 0x40)!= 0x40) {}
 	while(i > 0) {
+        if(spi_read_register(fd, IRQ_FLAGS) == 0x50) { // 0x05 = RxDone interrupt
+		    break;
+        }
         if(spi_read_register(fd, IRQ_FLAGS) != irq_value) {
             i--;
             irq_value = spi_read_register(fd, IRQ_FLAGS);
@@ -176,9 +179,7 @@ int main()
             modem_status = spi_read_register(fd, MODEM_STATUS);
             print_modem_status(fd); 
         }
-	    if(spi_read_register(fd, IRQ_FLAGS) == 0x50) { // 0x05 = RxDone interrupt
-		    break;
-        }
+
     }
 
     // Set LoRa Standby mode

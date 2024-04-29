@@ -112,15 +112,16 @@ int main()
 	// Fill the FIFO with data to transmit:
 	// 1) Set FifoPtrAddr to FifoTxPtrBase
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
+	//spi_write_register(fd, FIFO_ADDR_PTR, 0x00);
 	printf("[After setting] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
-	spi_write_register(fd, PAYLOAD_LENGTH, 0x10);
+	spi_write_register(fd, PAYLOAD_LENGTH, 0x04);
 	printf("PAYLOAD_LENGTH: 0x%02X \n", spi_read_register(fd, PAYLOAD_LENGTH));
 
 	// 2) Write PAYLOAD_LENGTH bytes to the FIFO
 	for(uint8_t i = 0x00; i < spi_read_register(fd, PAYLOAD_LENGTH); i++) {
 		printf("[%d] Writing to FIFO_ADDR_PTR: 0x%02X\n", i, spi_read_register(fd, FIFO_ADDR_PTR));
-		spi_write_register(fd, FIFO, 0xAF);
+		spi_write_register(fd, FIFO, i);
 	}
 	//printf("[After writing to FIFO] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
