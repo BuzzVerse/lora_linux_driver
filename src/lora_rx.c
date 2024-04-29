@@ -154,7 +154,7 @@ int main()
 	// Mode request: RX Continuous to initiate receive operation
 	printf("Initiating RX...");
 	spi_write_register(fd, OP_MODE, LORA_RX_CONT);
-	sleep((double)0.1);
+	sleep((double)(0.1));
 	printf(" RX_CONT set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
 
@@ -171,11 +171,12 @@ int main()
             i--;
             irq_value = spi_read_register(fd, IRQ_FLAGS);
             printf("[Inside loop] IRQ_FLAGS: 0x%02X\n", irq_value);
+        }
         if(spi_read_register(fd, MODEM_STATUS) != modem_status) {
             modem_status = spi_read_register(fd, MODEM_STATUS);
             print_modem_status(fd); 
         }
-	    if(spi_read_register(fd, IRQ_FLAGS) == 0x50) // 0x05 = RxDone interrupt
+	    if(spi_read_register(fd, IRQ_FLAGS) == 0x50) { // 0x05 = RxDone interrupt
 		    break;
         }
     }
@@ -184,7 +185,7 @@ int main()
 	printf("Setting LORA_STANDBY...");
 	spi_write_register(fd, OP_MODE, LORA_STANDBY);
 	//while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
-	sleep((double)0.1);
+	sleep((double)(0.1));
 	printf(" LORA_STANDBY set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	printf("IRQ_FLAGS: 0x%02X \n", spi_read_register(fd, IRQ_FLAGS));
@@ -220,7 +221,7 @@ int main()
 	printf("Setting LORA_SLEEP...");
 	spi_write_register(fd, OP_MODE, LORA_SLEEP);
 	//while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
-	sleep((double)0.1);
+	sleep((double)(0.1));
 	printf(" LORA_SLEEP set [OP_MODE = 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
 	close(fd);
