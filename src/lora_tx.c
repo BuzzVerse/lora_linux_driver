@@ -19,6 +19,7 @@ int main()
     	}
 	// TODO Reset the chip - must be done outside this program, by setting the RST pin on the chip
 
+    /*
 	// RX chain calibration
 	// Save initial values:
 	uint8_t pa_config_init_val = spi_read_register(fd, PA_CONFIG);
@@ -78,17 +79,23 @@ int main()
 	printf("[Before setting] OP_MODE: 0x%02X\n", spi_read_register(fd, OP_MODE));
 	
 	//spi_write_register(fd, OP_MODE, 0x01);
+    */
 
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
 	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	//spi_write_register(fd, OP_MODE, 0x80);
 	// there is a small delay between calling spi_write_register()
 	// and the register value being actually written, 
 	// hence the need to wait for a while
 	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
 	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
+    spi_write_register(fd, FIFO_TX_BASE_ADDR, 0x00);    
+	spi_write_register(fd, LNA, spi_read_register(fd, LNA) | 0x03);
+	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
+    spi_write_register(fd, PA_CONFIG, 0x8F);
+
+    /*
 	//spi_write_register(fd, LNA, 0x23);
 	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
 	spi_write_register(fd, PA_CONFIG, 0x8F);
@@ -102,6 +109,7 @@ int main()
 	spi_write_register(fd, MODEM_CONFIG_2, 0xC0);
 	spi_write_register(fd, MODEM_CONFIG_1, 0x48);
     spi_write_register(fd, PREAMBLE_LENGTH_LSB, 0x00);
+    */
 
 	// Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
@@ -109,13 +117,15 @@ int main()
 	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
 	printf(" LORA_STANDBY set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
+    spi_write_register(fd, MODEM_CONFIG_1, 0x48); // BW = 4, CR = 4/8
+    spi_write_register(fd, MODEM_CONFIG_2, 0xC4); // SF = 12, CRC enabled
+
 	// Fill the FIFO with data to transmit:
 	// 1) Set FifoPtrAddr to FifoTxPtrBase
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
-	//spi_write_register(fd, FIFO_ADDR_PTR, 0x00);
 	printf("[After setting] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
-	spi_write_register(fd, PAYLOAD_LENGTH, 0x04);
+	spi_write_register(fd, PAYLOAD_LENGTH, 0x06);
 	printf("PAYLOAD_LENGTH: 0x%02X \n", spi_read_register(fd, PAYLOAD_LENGTH));
 
 	// 2) Write PAYLOAD_LENGTH bytes to the FIFO

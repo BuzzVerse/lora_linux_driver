@@ -40,11 +40,20 @@
 // Register values
 #define FSK_OOK_SLEEP		    0x08
 #define FSK_OOK_STANDBY		    0x09	// default mode
+/*
 #define LORA_SLEEP		        0x88
 #define LORA_STANDBY		    0x89
 #define LORA_TX			        0x8B	// only enable if antenna is attached
 #define LORA_RX_CONT		    0x8D
 #define LORA_RX_SINGLE		    0x8E
+*/
+// LowFreqModeOff
+// TODO rename the constants so it is clear whether LowFreqMode is active or not
+#define LORA_SLEEP		        0x80
+#define LORA_STANDBY		    0x81
+#define LORA_TX			        0x83	// only enable if antenna is attached
+#define LORA_RX_CONT		    0x85
+#define LORA_RX_SINGLE		    0x86
 
 // ?
 #define IMAGE_CAL_MASK		    0xBF
