@@ -6,9 +6,9 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
-#include "lora_registers.h"
 #include "spi_io.h"
-
+#include "lora_registers.h"
+#include "lora_utility.h"
 
 int main()
 {
@@ -29,20 +29,13 @@ int main()
 	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
 	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
-    spi_write_register(fd, FIFO_RX_BASE_ADDR, 0x00);    
-    spi_write_register(fd, FIFO_TX_BASE_ADDR, 0x00);    
-	spi_write_register(fd, LNA, spi_read_register(fd, LNA) | 0x03);
-	spi_write_register(fd, MODEM_CONFIG_3, 0x04);
-    spi_write_register(fd, PA_CONFIG, 0x8F);
+    lora_initialize(fd);
 
     // Set LoRa Standby mode
 	printf("Setting LORA_STANDBY...");
 	spi_write_register(fd, OP_MODE, LORA_STANDBY); 
 	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
 	printf(" LORA_STANDBY set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
-
-    spi_write_register(fd, MODEM_CONFIG_1, 0x48); // BW = 4, CR = 4/8
-    spi_write_register(fd, MODEM_CONFIG_2, 0xC4); // SF = 12, CRC enabled
 
 	// Fill the FIFO with data to transmit:
 	// 1) Set FifoPtrAddr to FifoTxPtrBase
