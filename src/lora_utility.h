@@ -5,6 +5,8 @@
 
 void lora_initialize(int fd);
 
+void lora_dump_registers(int fd);
+
 void set_mode(int fd, uint8_t mode);
 
 void set_bandwidth(int fd, int bw);

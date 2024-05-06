@@ -16,6 +16,32 @@ void lora_initialize(int fd) {
     spi_write_register(fd, PA_CONFIG, 0x8F);
     spi_write_register(fd, MODEM_CONFIG_1, 0x48); // BW = 4, CR = 4/8
     spi_write_register(fd, MODEM_CONFIG_2, 0xC4); // SF = 12, CRC enabled
+
+    // Set frequency to 433 Hz
+    //double frequency = 433;
+
+    //uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
+
+    //spi_write_register(fd, FR_MSB, (uint8_t)(frf >> 16));
+    //spi_write_register(fd, FR_MID, (uint8_t)(frf >> 8));
+    //spi_write_register(fd, FR_LSB, (uint8_t)(frf >> 0));
+    
+    spi_write_register(fd, FR_MSB, 0x6C);
+    spi_write_register(fd, FR_MID, 0x40);
+    spi_write_register(fd, FR_LSB, 0x00);
+}
+
+void lora_dump_registers(int fd)
+{
+   uint8_t i;
+   printf("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+   for (i = 0; i < 0x40; i++)
+   {
+      printf("%02X ", spi_read_register(fd, i));
+      if ((i & 0x0f) == 0x0f)
+         printf("\n");
+   }
+   printf("\n");
 }
 
 void set_mode(int fd, uint8_t mode) {
@@ -49,7 +75,6 @@ void enable_crc(int fd) {
 
 void print_modem_status(int fd) {
     uint8_t modem_status = spi_read_register(fd, MODEM_STATUS);
-	sleep((double)0.1);
     if((modem_status & 0x10) == 0x10) { printf("    [MODEM_STATUS] Modem clear\n"); }
     if((modem_status & 0x08) == 0x08) { printf("    [MODEM_STATUS] Header info valid\n"); }
     if((modem_status & 0x04) == 0x04) { printf("    [MODEM_STATUS] RX on-going\n"); }
@@ -59,7 +84,6 @@ void print_modem_status(int fd) {
 
 void print_irq_flags(int fd) {
     uint8_t irq_flags = spi_read_register(fd, IRQ_FLAGS);
-	sleep((double)0.1);
     if((irq_flags & 0x80) == 0x80) { printf("[IRQ_FLAGS] RxTimeout\n"); }
     if((irq_flags & 0x40) == 0x40) { printf("[IRQ_FLAGS] RxDone\n"); }
     if((irq_flags & 0x20) == 0x20) { printf("[IRQ_FLAGS] PayloadCrcError\n"); }

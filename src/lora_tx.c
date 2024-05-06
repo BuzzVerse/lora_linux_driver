@@ -12,20 +12,17 @@
 
 int main()
 {
-	int fd = open("/dev/spidev0.0", O_RDWR);
-    	if (fd == 0) {
-        	perror("Can't open device. Check permissions and if file exists");
-        	return 1;
-    	}
+    int fd = open("/dev/spidev0.0", O_RDWR);
+    if (fd == 0) {
+        perror("Can't open device. Check permissions and if file exists");
+        return 1;
+    }
 
 	// TODO Reset the chip
 
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
 	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	// there is a small delay between calling spi_write_register()
-	// and the register value being actually written, 
-	// hence the need to wait for a while
 	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
 	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
 
@@ -41,14 +38,13 @@ int main()
 	// 1) Set FifoPtrAddr to FifoTxPtrBase
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
 
-	spi_write_register(fd, PAYLOAD_LENGTH, 0x06);
+	spi_write_register(fd, PAYLOAD_LENGTH, 0x06); // 6 bytes for testing purposes
 	printf("PAYLOAD_LENGTH: 0x%02X \n", spi_read_register(fd, PAYLOAD_LENGTH));
 
 	// 2) Write PAYLOAD_LENGTH bytes to the FIFO
 	for(uint8_t i = 0x00; i < spi_read_register(fd, PAYLOAD_LENGTH); i++) {
-		spi_write_register(fd, FIFO, i);
+		spi_write_register(fd, FIFO, i + 16);
 	}
-	//printf("[After writing to FIFO] FIFO_ADDR_PTR: 0x%02X\n", spi_read_register(fd, FIFO_ADDR_PTR));
 
 	// Set FifoPtrAddr to FifoTxPtrBase to read written data
 	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
@@ -67,7 +63,7 @@ int main()
 
 	printf("Packet sent successfully - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
 	// Write 1 to clear the interrupt
-    spi_write_register(fd, IRQ_FLAGS, 0x08);
+    spi_write_register(fd, IRQ_FLAGS, 0xFF);
 
 	// Put LoRa in Sleep mode
 	printf("Setting LORA_SLEEP...");
