@@ -19,6 +19,7 @@ int main()
     }
 
 	// TODO Reset the chip	
+    system("bash reset.sh");
 
 	// To enable communication, LoRa has to be set in LoRa Standby mode
 	// Default mode is FSK/OOK Standby
