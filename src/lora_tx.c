@@ -19,7 +19,7 @@ int main()
     }
 
 	// TODO Reset the chip
-    system("bash reset.sh");
+    //system("bash reset.sh");
 
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");
