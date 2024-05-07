@@ -16,7 +16,12 @@ def formatDec(number: int) -> str:
     return f"{number}"
 
 def formatHex(number: int) -> str:
-    return "0x" + f"{number:x}".upper()
+    # return "0x" + f"{number:x}".upper()
+    string = [x for x in f"{number:x}".upper()]
+    while len(string) % 2 != 0:
+        string.insert(0, "0")
+    
+    return "0x" + "".join(string)
 
 def formatBin(number: int) -> str:
     string = [x for x in f"{number:b}"]
