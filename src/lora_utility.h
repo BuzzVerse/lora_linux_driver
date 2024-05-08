@@ -21,4 +21,6 @@ void print_modem_status(int fd);
 
 void print_irq_flags(int fd);
 
+void lora_reset(void);
+
 #endif

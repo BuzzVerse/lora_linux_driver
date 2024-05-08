@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -7,6 +8,7 @@
 #include "lora_utility.h"
 #include "lora_registers.h"
 #include "spi_io.h"
+#include "colors.h"
 
 void lora_initialize(int fd) {
     spi_write_register(fd, FIFO_RX_BASE_ADDR, 0x00);    
@@ -75,21 +77,43 @@ void enable_crc(int fd) {
 
 void print_modem_status(int fd) {
     uint8_t modem_status = spi_read_register(fd, MODEM_STATUS);
-    if((modem_status & 0x10) == 0x10) { printf("    [MODEM_STATUS] Modem clear\n"); }
-    if((modem_status & 0x08) == 0x08) { printf("    [MODEM_STATUS] Header info valid\n"); }
-    if((modem_status & 0x04) == 0x04) { printf("    [MODEM_STATUS] RX on-going\n"); }
-    if((modem_status & 0x02) == 0x02) { printf("    [MODEM_STATUS] Signal synchronized\n"); }
-    if((modem_status & 0x01) == 0x01) { printf("    [MODEM_STATUS] Signal detected\n"); }
+    if((modem_status & 0x10) == 0x10) { printf("    %s[MODEM_STATUS]%s Modem clear\n", C_YELLOW, C_DEFAULT); }
+    if((modem_status & 0x08) == 0x08) { printf("    %s[MODEM_STATUS]%s Header info valid\n", C_YELLOW, C_DEFAULT); }
+    if((modem_status & 0x04) == 0x04) { printf("    %s[MODEM_STATUS]%s RX on-going\n", C_YELLOW, C_DEFAULT); }
+    if((modem_status & 0x02) == 0x02) { printf("    %s[MODEM_STATUS]%s Signal synchronized\n", C_YELLOW, C_DEFAULT); }
+    if((modem_status & 0x01) == 0x01) { printf("    %s[MODEM_STATUS]%s Signal detected\n", C_YELLOW, C_DEFAULT); }
 }
 
 void print_irq_flags(int fd) {
     uint8_t irq_flags = spi_read_register(fd, IRQ_FLAGS);
-    if((irq_flags & 0x80) == 0x80) { printf("[IRQ_FLAGS] RxTimeout\n"); }
-    if((irq_flags & 0x40) == 0x40) { printf("[IRQ_FLAGS] RxDone\n"); }
-    if((irq_flags & 0x20) == 0x20) { printf("[IRQ_FLAGS] PayloadCrcError\n"); }
-    if((irq_flags & 0x10) == 0x10) { printf("[IRQ_FLAGS] ValidHeader\n"); }
-    if((irq_flags & 0x08) == 0x08) { printf("[IRQ_FLAGS] TxDone\n"); }
-    if((irq_flags & 0x04) == 0x04) { printf("[IRQ_FLAGS] CadDone\n"); }
-    if((irq_flags & 0x02) == 0x02) { printf("[IRQ_FLAGS] FhssChangeChannel\n"); }
-    if((irq_flags & 0x01) == 0x01) { printf("[IRQ_FLAGS] CadDetected\n"); }
+    if((irq_flags & 0x80) == 0x80) { printf("%s[IRQ_FLAGS]%s RxTimeout\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x40) == 0x40) { printf("%s[IRQ_FLAGS]%s RxDone\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x20) == 0x20) { printf("%s[IRQ_FLAGS]%s PayloadCrcError\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x10) == 0x10) { printf("%s[IRQ_FLAGS]%s ValidHeader\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x08) == 0x08) { printf("%s[IRQ_FLAGS]%s TxDone\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x04) == 0x04) { printf("%s[IRQ_FLAGS]%s CadDone\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x02) == 0x02) { printf("%s[IRQ_FLAGS]%s FhssChangeChannel\n", C_YELLOW, C_DEFAULT); }
+    if((irq_flags & 0x01) == 0x01) { printf("%s[IRQ_FLAGS]%s CadDetected\n", C_YELLOW, C_DEFAULT); }
+}
+
+void lora_reset(void) {
+    for (int i = 0x0; i < 0x2; i++) {
+        FILE *fptr66, *fptr69;
+        fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
+        fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
+
+        if ((fptr66 == NULL) || (fptr69 == NULL)) {
+            printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
+            exit(1);
+        }
+
+        fprintf(fptr66, "%d", i);
+        fprintf(fptr69, "%d", i);
+
+        sleep((double)(0.0001));
+
+        fclose(fptr66);
+        fclose(fptr69);
+    }
+    sleep((double)(0.005));
 }
