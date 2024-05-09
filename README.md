@@ -1,6 +1,6 @@
 # Setup
 1. Connect the LoRa module to the correct pins on BeagleBone Black
-2. Enable SPI by running the "spidev_enable" script on BeagleBone
+2. Enable SPI by running spidev_enable.sh on BeagleBone
 3. If required, enable GPIO pins by running gpio_enable.sh on BeagleBone
     - this is required if LoRa NRST is being connected to one of the programmable GPIO pins on BeagleBone
     - connecting NRST to GPIO pins is recommended, as it allows to manually reset the chip (e.g. by running reset.sh)
