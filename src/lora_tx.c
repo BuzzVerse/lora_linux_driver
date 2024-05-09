@@ -19,7 +19,7 @@ int main()
     }
 
 	// Reset the chip
-    lora_reset();
+    //lora_reset();
 
 	// Set LoRa Sleep mode
 	printf("Setting LORA_SLEEP...");

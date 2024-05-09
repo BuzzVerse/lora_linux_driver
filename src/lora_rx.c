@@ -19,7 +19,7 @@ int main()
     }
 
 	// Reset the chip	
-    lora_reset();
+    //lora_reset();
 
 	// To enable communication, LoRa has to be set in LoRa Standby mode
 	// Default mode is FSK/OOK Standby
