@@ -1,6 +1,6 @@
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -18,8 +18,8 @@ int main()
         return 1;
     }
 
-	// TODO Reset the chip	
-    //system("bash reset.sh");
+	// Reset the chip	
+    lora_reset();
 
 	// To enable communication, LoRa has to be set in LoRa Standby mode
 	// Default mode is FSK/OOK Standby
