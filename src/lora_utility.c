@@ -116,4 +116,5 @@ void lora_reset(void) {
         fclose(fptr69);
     }
     sleep((double)(0.005));
+    printf("%s[RESET]%s Ok", C_GREEN, C_DEFAULT);
 }
