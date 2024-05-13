@@ -4,28 +4,12 @@
 #include "colors.h"
 
 void lora_reset(void) {
-    for (int i = 0; i < 2; i++) {
-        FILE *fptr66, *fptr69;
-        fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
-        fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
-
-        if ((fptr66 == NULL) || (fptr69 == NULL)) {
-            printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
-            return; 
-        }
-
-        fprintf(fptr66, "%d", i);
-        fprintf(fptr69, "%d", i);
-
-        sleep((double)(0.0001));
-
-        fclose(fptr66);
-        fclose(fptr69);
-    }
-
-    sleep((double)(0.005));
-
-    printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
+    system("echo 0 > /sys/class/gpio/gpio66/value");
+    system("echo 0 > /sys/class/gpio/gpio69/value");
+    system("sleep .0001s");
+    system("echo 1 > /sys/class/gpio/gpio66/value");
+    system("echo 1 > /sys/class/gpio/gpio69/value");
+    system("sleep .005s");
 }
 
 int main(void) {
