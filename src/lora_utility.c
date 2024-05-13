@@ -102,7 +102,7 @@ void print_irq_flags(int fd) {
 
 
 
-api_status_t spi_init() {
+api_status_t spi_init(void) {
     // TODO do what spidev_enable.sh and gpio_enable.sh do?
 
     // For SPI0, /dev/spidev0.#
@@ -186,7 +186,7 @@ api_status_t spi_write_buf(int fd, uint8_t reg, uint8_t* buf, uint16_t len) {
 
 // TODO implement
 void lora_delay(uint32_t ticks) {
-    vTaskDelay(ticks);    
+    //vTaskDelay(ticks);    
 }
 
 // TODO fix

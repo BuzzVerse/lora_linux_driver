@@ -12,6 +12,8 @@
 
 int main()
 {
+    //spi_init();
+
     int fd = open("/dev/spidev1.0", O_RDWR);
     if (fd == 0) {
         perror("Can't open device. Check permissions and if file exists");
