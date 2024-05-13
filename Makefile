@@ -19,4 +19,4 @@ lora_tx: lora_tx.o spi_io.o lora_utility.o
 	arm-linux-gnueabihf-gcc -static -o ./build/lora_tx ./build/lora_tx.o ./build/spi_io.o ./build/lora_utility.o
 
 spidev_enable: ./src/spidev_enable.c
-	arm-linux-gnueabihf-gcc -static -o ./src/spidev_enable.c ./build/spidev_enable
+	arm-linux-gnueabihf-gcc -static ./src/spidev_enable.c ./build/spidev_enable
