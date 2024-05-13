@@ -16,25 +16,15 @@ void lora_reset(void) {
     fseek(fptr66, 0, SEEK_SET);
     fseek(fptr69, 0, SEEK_SET);
 
-    fprintf(fptr66, "%d", 0);
-    fflush(fptr66);
+    for (int i = 0; i < 2; i++) {
+        fprintf(fptr66, "%d", i);
+        fflush(fptr66);
 
-    fprintf(fptr69, "%d", 0);
-    fflush(fptr69);
+        fprintf(fptr69, "%d", i);
+        fflush(fptr69);
 
-    sleep(1);
-
-    fprintf(fptr66, "%d", 1);
-    fflush(fptr66);
-
-    fprintf(fptr69, "%d", 1);
-    fflush(fptr69);
-
-    fclose(fptr66);
-    fclose(fptr69);
-
-    sleep(1);
-
+        sleep(1);
+    }
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
 }
 
