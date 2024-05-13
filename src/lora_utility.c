@@ -191,24 +191,37 @@ void lora_delay(uint32_t ticks) {
 
 // TODO fix
 void lora_reset(void) {
-    for (int i = 0x0; i < 0x2; i++) {
-        FILE *fptr66, *fptr69;
-        fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
-        fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
+    FILE *fptr66, *fptr69;
+    fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
+    fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
 
-        if ((fptr66 == NULL) || (fptr69 == NULL)) {
-            printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
-            return; 
-        }
-
-        fprintf(fptr66, "%d", i);
-        fprintf(fptr69, "%d", i);
-
-        sleep((double)(0.0001));
-
-        fclose(fptr66);
-        fclose(fptr69);
+    if ((fptr66 == NULL) || (fptr69 == NULL)) {
+        printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
+        return; 
     }
+
+    fprintf(fptr66, "%d", 0);
+    fprintf(fptr69, "%d", 0);
+
+    fclose(fptr66);
+    fclose(fptr69);
+
+
+    sleep((double)(0.001));
+
+    fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
+    fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
+
+    if ((fptr66 == NULL) || (fptr69 == NULL)) {
+        printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
+        return; 
+    }
+
+    fprintf(fptr66, "%d", 1);
+    fprintf(fptr69, "%d", 1);
+
+    fclose(fptr66);
+    fclose(fptr69);
 
     sleep((double)(0.005));
 
