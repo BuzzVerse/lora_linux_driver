@@ -4,7 +4,7 @@
 #include "colors.h"
 
 void lora_reset(void) {
-    for (int i = 0x0; i < 0x2; i++) {
+    for (int i = 0; i < 2; i++) {
         FILE *fptr66, *fptr69;
         fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
         fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
