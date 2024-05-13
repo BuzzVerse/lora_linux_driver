@@ -2,6 +2,8 @@
 #define LORA_UTILITY_H
 
 #include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 void lora_initialize(int fd);
 
@@ -26,6 +28,8 @@ typedef enum {
     API_SPI_ERROR,
     API_LORA_RESET_ERROR
 } api_status_t;
+
+void lora_delay(uint32_t ticks);
 
 void lora_reset(void);
 

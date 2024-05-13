@@ -169,7 +169,7 @@ api_status_t spi_write_buf(int fd, uint8_t reg, uint8_t* buf, uint16_t len) {
 
 // TODO implement
 void lora_delay(uint32_t ticks) {
-    
+    vTaskDelay(ticks);    
 }
 
 // TODO fix
