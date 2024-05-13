@@ -96,6 +96,83 @@ void print_irq_flags(int fd) {
     if((irq_flags & 0x01) == 0x01) { printf("%s[IRQ_FLAGS]%s CadDetected\n", C_YELLOW, C_DEFAULT); }
 }
 
+
+
+// new API functions
+
+api_status_t spi_init() {
+    // TODO do what spidev_enable.sh and gpio_enable.sh do?
+    return API_OK;
+}
+
+// read a register and save it to a variable
+api_status_t spi_read(int fd, uint8_t reg, uint8_t* val) {
+    uint8_t tx[] = {reg | SPI_READ, 0x00};
+    uint8_t rx[2] = {0, 0};
+    struct spi_ioc_transfer tr = {
+        .tx_buf = (unsigned long)tx,
+        .rx_buf = (unsigned long)rx,
+        .len = 2,
+        .speed_hz = SPI_SPEED_HZ,
+        .bits_per_word = 8,
+    };
+
+    if (ioctl(fd, SPI_IOC_MESSAGE(1), &tr) < 0) {
+        perror("SPI Read Error");
+        return API_SPI_ERROR;
+    }
+
+    *val = rx[1];
+    return API_OK;
+}
+
+// TODO not sure if it works??
+api_status_t spi_read_buf(int fd, uint8_t reg, uint8_t* buf, uint16_t len) {
+    for(uint16_t i = 0; i < len; i++) {
+        if(spi_read(fd, reg, buf) == API_SPI_ERROR) {
+            return API_SPI_ERROR;
+        }
+        buf++;
+    }
+
+    return API_OK;
+}
+
+api_status_t spi_write(int fd, uint8_t reg, uint8_t val) {
+    uint8_t tx[] = {reg | SPI_WRITE, val};
+    uint8_t rx[2] = {0, 0};
+    struct spi_ioc_transfer tr = {
+        .tx_buf = (unsigned long)tx,
+        .rx_buf = (unsigned long)rx,
+        .len = 2,
+        .speed_hz = SPI_SPEED_HZ,
+        .bits_per_word = 8,
+    };
+
+    if (ioctl(fd, SPI_IOC_MESSAGE(1), &tr) < 0) {
+        perror("SPI Write Error");
+        return API_SPI_ERROR;
+    }
+
+    return API_OK;
+}
+
+api_status_t spi_write_buf(int fd, uint8_t reg, uint8_t* buf, uint16_t len) {
+    for(uint16_t i = 0; i < len; i++) {
+        if(spi_write(fd, reg, *buf) == API_SPI_ERROR) {
+            return API_SPI_ERROR;
+        }
+        buf++;
+    }
+    return API_OK;
+}
+
+// TODO implement
+void lora_delay(uint32_t ticks) {
+    
+}
+
+// TODO fix
 void lora_reset(void) {
     for (int i = 0x0; i < 0x2; i++) {
         FILE *fptr66, *fptr69;
@@ -104,7 +181,7 @@ void lora_reset(void) {
 
         if ((fptr66 == NULL) || (fptr69 == NULL)) {
             printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
-            exit(1);
+            return; 
         }
 
         fprintf(fptr66, "%d", i);
@@ -115,6 +192,8 @@ void lora_reset(void) {
         fclose(fptr66);
         fclose(fptr69);
     }
+
     sleep((double)(0.005));
+
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
 }

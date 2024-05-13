@@ -21,6 +21,12 @@ void print_modem_status(int fd);
 
 void print_irq_flags(int fd);
 
+typedef enum {
+    API_OK,
+    API_SPI_ERROR,
+    API_LORA_RESET_ERROR
+} api_status_t;
+
 void lora_reset(void);
 
 #endif
