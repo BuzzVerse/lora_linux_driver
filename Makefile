@@ -1,4 +1,4 @@
-all: lora_rx lora_tx spidev_enable
+all: lora_rx lora_tx test
 
 lora_rx.o: ./src/lora_rx.c
 	arm-linux-gnueabihf-gcc -static ./src/lora_rx.c -o ./build/lora_rx.o -c  
