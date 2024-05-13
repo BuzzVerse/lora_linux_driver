@@ -100,8 +100,25 @@ void print_irq_flags(int fd) {
 
 // new API functions
 
+
+
 api_status_t spi_init() {
     // TODO do what spidev_enable.sh and gpio_enable.sh do?
+
+    // For SPI0, /dev/spidev0.#
+    system("config-pin p9_17 spi_cs");
+    system("config-pin p9_18 spi");
+    system("config-pin p9_21 spi");
+    system("config-pin p9_22 spi_sclk");
+
+    // For SPI1, /dev/spidev1.#
+    system("config-pin p9_28 spi_cs");
+    system("config-pin p9_29 spi");
+    system("config-pin p9_30 spi");
+    system("config-pin p9_31 spi_sclk");
+
+    printf("%s[LORA]%s Init\n", C_GREEN, C_DEFAULT);
+
     return API_OK;
 }
 
