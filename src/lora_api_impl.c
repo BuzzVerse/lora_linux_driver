@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/spi/spidev.h>
+#include <linux/spi/spidev.h> 
 
 #include "../include/api/driver_api.h"
 #include "lora_registers.h"
@@ -31,6 +31,31 @@ api_status_t spi_init(void) {
     // gpio66_value=/sys/class/gpio/gpio66/value
     // gpio69_direction=/sys/class/gpio/gpio69/direction
     // gpio69_value=/sys/class/gpio/gpio69/value
+    FILE *gpio66d, *gpio66v, *gpio69d, *gpio69v;
+    gpio66d = fopen("/sys/class/gpio/gpio66/direction", "w");
+    gpio66v = fopen("/sys/class/gpio/gpio66/value", "w");
+    gpio69d = fopen("/sys/class/gpio/gpio69/direction", "w");
+    gpio69v = fopen("/sys/class/gpio/gpio69/value", "w");
+
+    fseek(gpio66d, 0, SEEK_SET);
+    fseek(gpio69d, 0, SEEK_SET);
+    fseek(gpio66v, 0, SEEK_SET);
+    fseek(gpio69v, 0, SEEK_SET);
+
+    fflush(gpio66d);
+    fprintf(gpio66d, "out");
+    fflush(gpio66v);
+    fprintf(gpio66v, "1");
+    fflush(gpio69d);
+    fprintf(gpio69d, "out");
+    fflush(gpio69v);
+    fprintf(gpio69v, "1");
+
+    fclose(gpio66d);
+    fclose(gpio66v);
+    fclose(gpio69d);
+    fclose(gpio69v);
+    
 
     // echo out > $gpio66_direction
     // echo 1 > $gpio66_value
