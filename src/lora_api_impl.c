@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -61,6 +62,9 @@ api_status_t spi_init(void) {
     // echo 1 > $gpio66_value
     // echo out > $gpio69_direction
     // echo 1 > $gpio69_value
+
+    fd = open("/dev/spidev1.0", O_RDWR);
+    printf("Opened fd: %d\n", fd);
 
     printf("%s[LORA]%s Init\n", C_GREEN, C_DEFAULT);
 
@@ -156,4 +160,9 @@ void lora_reset(void) {
         sleep(1);
     }
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
+}
+
+void spi_close() {
+    printf("Closing fd: %d\n", fd);
+    close(fd);
 }
