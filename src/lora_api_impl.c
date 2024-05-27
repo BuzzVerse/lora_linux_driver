@@ -68,6 +68,13 @@ api_status_t spi_init(void) {
 
     printf("%s[LORA]%s Init\n", C_GREEN, C_DEFAULT);
 
+    // TEMPORARY: setting frequency in a different way than lora_set_frequency(433)
+    // works when both TX and RX set frequency this way
+    // TODO: check if TX and RX work if both set with lora_set_frequency()
+    spi_write(FR_MSB, 0x6C);
+    spi_write(FR_MID, 0x40);
+    spi_write(FR_LSB, 0x00);
+
     return API_OK;
 }
 
