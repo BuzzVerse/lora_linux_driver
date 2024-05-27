@@ -163,6 +163,6 @@ void lora_reset(void) {
 }
 
 void spi_close() {
-    printf("Closing fd: %d\n", fd);
+    //printf("Closing fd: %d\n", fd);
     close(fd);
 }

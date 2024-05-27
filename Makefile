@@ -1,7 +1,7 @@
 all: lora_rx lora_tx test
 
 lora_rx.o: ./src/lora_rx.c
-	arm-linux-gnueabihf-gcc -static ./src/lora_rx.c -o ./build/lora_rx.o -c  
+	arm-linux-gnueabihf-gcc -static ./src/lora_rx.c -o ./build/lora_rx.o -c
 
 lora_tx.o: ./src/lora_tx.c
 	arm-linux-gnueabihf-gcc -static ./src/lora_tx.c -o ./build/lora_tx.o -c
