@@ -1,10 +1,22 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "../include/driver/lora_driver.h"
 
 extern void spi_close();
+
+void handle_sigint(int sig) {
+    printf("Signal handled\n");
+
+    lora_sleep_mode();
+
+    spi_close();
+
+    exit(0);
+}
 
 int main()
 {
@@ -25,6 +37,7 @@ int main()
     //uint8_t size = 1;
     bool received = false;
 
+    signal(SIGINT, handle_sigint);
     // TODO make infinite receive loop
     while(1) {
         lora_received(&received);
@@ -36,7 +49,7 @@ int main()
             }
             return_len = 0x00;
             received = false;
-            //break; // TODO how to exit the loop and cleanly exit the program? (i. e. by executing spi_close()) 
+            //break; 
         }
     }
 
