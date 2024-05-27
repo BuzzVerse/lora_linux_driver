@@ -16,6 +16,7 @@ int main()
     lora_set_bandwidth(4);
     lora_set_coding_rate(8);
     lora_set_spreading_factor(12);
+    lora_enable_crc();
 
     lora_receive_mode();
 
@@ -25,11 +26,10 @@ int main()
     bool received = false;
 
     while(1) {
-        lora_receive_packet(buf, &return_len, sizeof(buf));
-
         lora_received(&received);
 
         if(received) {
+            lora_receive_packet(buf, &return_len, sizeof(buf));
             for(int i = 0; i < sizeof(buf); i++) {
                 printf("Data received: 0x%02X\n", *(buf + i));
             }
