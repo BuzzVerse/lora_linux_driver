@@ -9,7 +9,7 @@
 extern void spi_close();
 
 void handle_sigint(int sig) {
-    printf("Signal handled\n");
+    printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
     lora_sleep_mode();
 
@@ -20,6 +20,9 @@ void handle_sigint(int sig) {
 
 int main()
 {
+    // signal handler for CTRL-C
+    signal(SIGINT, handle_sigint);
+
     lora_driver_init();
 
     lora_idle_mode();
@@ -37,7 +40,6 @@ int main()
     //uint8_t size = 1;
     bool received = false;
 
-    signal(SIGINT, handle_sigint);
     // TODO make infinite receive loop
     while(1) {
         lora_received(&received);

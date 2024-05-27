@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <gpiod.h>
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
@@ -209,7 +210,7 @@ void lora_reset(void) {
         fprintf(fptr69, "%d", i);
         fflush(fptr69);
 
-        sleep(1);
+        sleep((double)(0.1));
     }
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
 }
