@@ -18,6 +18,13 @@ void handle_sigint(int sig) {
     exit(0);
 }
 
+void print_buffer(uint8_t* buf, uint8_t len) {
+    printf("Data received:\n");
+    for(uint8_t i = 0x00; i < len; i++) {
+        printf("0x%02X\n", *(buf + i));
+    }
+}
+
 int main()
 {
     // signal handler for CTRL-C
@@ -52,9 +59,7 @@ int main()
             } else {
                 uint8_t return_len;
                 lora_receive_packet(buf, &return_len, sizeof(buf)); // puts LoRa in idle mode!!!
-                for(uint8_t i = 0x00; i < return_len; i++) {
-                    printf("Data received: 0x%02X\n", *(buf + i));
-                }
+                print_buffer(buf, return_len);
                 lora_receive_mode();
             }
             
