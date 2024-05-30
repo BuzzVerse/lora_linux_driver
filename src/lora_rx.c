@@ -36,22 +36,29 @@ int main()
     lora_receive_mode();
 
     uint8_t buf[32]; // temporary buffer size
-    uint8_t return_len;
-    //uint8_t size = 1;
     bool received = false;
+    bool crc_error = false;
+    uint8_t irq;
 
-    // TODO make infinite receive loop
     while(1) {
-        lora_received(&received);
+        lora_received(&received, &crc_error);
 
         if(received) {
-            lora_receive_packet(buf, &return_len, sizeof(buf));
-            for(uint8_t i = 0x00; i < return_len; i++) {
-                printf("Data received: 0x%02X\n", *(buf + i));
+            lora_get_irq(&irq);
+
+            if(crc_error) {
+                printf("CRC error.\n");
+                crc_error = false;
+            } else {
+                uint8_t return_len;
+                lora_receive_packet(buf, &return_len, sizeof(buf)); // puts LoRa in idle mode!!!
+                for(uint8_t i = 0x00; i < return_len; i++) {
+                    printf("Data received: 0x%02X\n", *(buf + i));
+                }
+                lora_receive_mode();
             }
-            return_len = 0x00;
+            
             received = false;
-            //break; 
         }
     }
 
