@@ -63,17 +63,7 @@ api_status_t spi_init(void) {
     // echo out > $gpio69_direction
     // echo 1 > $gpio69_value
 
-    fd = open("/dev/spidev1.0", O_RDWR);
-    printf("Opened fd: %d\n", fd);
-
     printf("%s[LORA]%s Init\n", C_GREEN, C_DEFAULT);
-
-    // TEMPORARY: setting frequency in a different way than lora_set_frequency(433)
-    // works when both TX and RX set frequency this way
-    // TODO: check if TX and RX work if both set with lora_set_frequency()
-    spi_write(FR_MSB, 0x6C);
-    spi_write(FR_MID, 0x40);
-    spi_write(FR_LSB, 0x00);
 
     return API_OK;
 }
@@ -169,7 +159,12 @@ void lora_reset(void) {
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
 }
 
-void spi_close() {
-    //printf("Closing fd: %d\n", fd);
+void spidev_open(const char* dev) {
+    fd = open(dev, O_RDWR);
+    printf("Opened fd: %d\n", fd);
+}
+
+void spidev_close() {
     close(fd);
+    printf("Closed fd: %d\n", fd);
 }

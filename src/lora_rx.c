@@ -6,14 +6,15 @@
 
 #include "../include/driver/lora_driver.h"
 
-extern void spi_close();
+extern void spidev_close(); // function from lora_api_impl.c
+extern void spidev_open(char* dev); // function from lora_api_impl.c
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
     lora_sleep_mode();
 
-    spi_close();
+    spidev_close();
 
     exit(0);
 }
@@ -30,11 +31,17 @@ int main()
     // signal handler for CTRL-C
     signal(SIGINT, handle_sigint);
 
+    spidev_open("/dev/spidev1.0");
+
     lora_driver_init();
 
     lora_idle_mode();
 
     //lora_set_frequency(433); // TODO use this function both in TX & RX and see if they work
+    lora_write_reg(REG_FRF_MSB, 0x6C);
+    lora_write_reg(REG_FRF_MID, 0x40);
+    lora_write_reg(REG_FRF_LSB, 0x00);
+
     lora_set_bandwidth(4);
     lora_set_coding_rate(8);
     lora_set_spreading_factor(12);
@@ -69,5 +76,5 @@ int main()
 
     lora_sleep_mode();
 
-    spi_close();
+    spidev_close();
 }
