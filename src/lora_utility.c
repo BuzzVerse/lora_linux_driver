@@ -11,6 +11,15 @@
 #include "spi_io.h"
 #include "colors.h"
 
+void lora_set_frequency(int fd, long frequency)
+{
+   uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
+
+   spi_write_register(fd, FR_MSB, (uint8_t)(frf >> 16));
+   spi_write_register(fd, FR_MID, (uint8_t)(frf >> 8));
+   spi_write_register(fd, FR_LSB, (uint8_t)(frf >> 0));
+}
+
 void lora_initialize(int fd) {
     spi_write_register(fd, FIFO_RX_BASE_ADDR, 0x00);    
     spi_write_register(fd, FIFO_TX_BASE_ADDR, 0x00);    
@@ -19,19 +28,8 @@ void lora_initialize(int fd) {
     spi_write_register(fd, PA_CONFIG, 0x8F);
     spi_write_register(fd, MODEM_CONFIG_1, 0x48); // BW = 4, CR = 4/8
     spi_write_register(fd, MODEM_CONFIG_2, 0xC4); // SF = 12, CRC enabled
-
-    // Set frequency to 433 Hz
-    //double frequency = 433;
-
-    //uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
-
-    //spi_write_register(fd, FR_MSB, (uint8_t)(frf >> 16));
-    //spi_write_register(fd, FR_MID, (uint8_t)(frf >> 8));
-    //spi_write_register(fd, FR_LSB, (uint8_t)(frf >> 0));
     
-    spi_write_register(fd, FR_MSB, 0x6C);
-    spi_write_register(fd, FR_MID, 0x40);
-    spi_write_register(fd, FR_LSB, 0x00);
+    lora_set_frequency(fd, 433);
 }
 
 void lora_dump_registers(int fd)

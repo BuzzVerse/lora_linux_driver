@@ -37,11 +37,7 @@ int main()
 
     lora_idle_mode();
 
-    //lora_set_frequency(433); // TODO use this function both in TX & RX and see if they work
-    lora_write_reg(REG_FRF_MSB, 0x6C);
-    lora_write_reg(REG_FRF_MID, 0x40);
-    lora_write_reg(REG_FRF_LSB, 0x00);
-
+    lora_set_frequency(433);
     lora_set_bandwidth(4);
     lora_set_coding_rate(8);
     lora_set_spreading_factor(12);
