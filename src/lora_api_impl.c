@@ -7,9 +7,11 @@
 #include <linux/spi/spidev.h> 
 
 #include "api/driver_api.h"
-#include "lora_registers.h"
-#include "spi_io.h"
 #include "colors.h"
+
+#define SPI_READ        0x00
+#define SPI_WRITE       0x80
+#define SPI_SPEED_HZ    500000
 
 static int fd;
 
