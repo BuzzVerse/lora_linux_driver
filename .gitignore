@@ -53,3 +53,6 @@ dkms.conf
 
 # Clangd
 .cache/
+
+build/
+!build/compile_commands.json
