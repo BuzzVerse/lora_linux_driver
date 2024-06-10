@@ -1,0 +1,106 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_rx.o",
+      "./src/lora_rx.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/lora_rx.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_rx.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/spi_io.o",
+      "./src/spi_io.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/spi_io.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/spi_io.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_driver.o",
+      "./include/driver/lora_driver.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/include/driver/lora_driver.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_driver.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_api_impl.o",
+      "./src/lora_api_impl.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/lora_api_impl.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_api_impl.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_tx.o",
+      "./src/lora_tx.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/lora_tx.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_tx.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_utility.o",
+      "./src/lora_utility.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/lora_utility.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_utility.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "./build/lora_tx_new.o",
+      "./src/lora_tx_new.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/lora_tx_new.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/lora_tx_new.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/arm-linux-gnueabihf-gcc",
+      "-c",
+      "-Iinclude/",
+      "-o",
+      "./build/test",
+      "./src/test.c"
+    ],
+    "directory": "/home/jkow/programming/lora_linux_driver",
+    "file": "/home/jkow/programming/lora_linux_driver/src/test.c",
+    "output": "/home/jkow/programming/lora_linux_driver/build/test"
+  }
+]
