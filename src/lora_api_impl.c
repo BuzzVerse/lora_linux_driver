@@ -6,7 +6,7 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h> 
 
-#include "../include/api/driver_api.h"
+#include "api/driver_api.h"
 #include "lora_registers.h"
 #include "spi_io.h"
 #include "colors.h"

@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/driver/lora_driver.h"
+#include "driver/lora_driver.h"
 
 extern void spidev_close(); // function from lora_api_impl.c
 extern void spidev_open(char* dev); // function from lora_api_impl.c
