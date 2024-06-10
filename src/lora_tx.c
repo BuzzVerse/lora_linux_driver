@@ -1,79 +1,75 @@
-#include <fcntl.h>
 #include <stdio.h>
-// #include <stdlib.h>
-#include <stdint.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include <linux/spi/spidev.h>
 
-#include "spi_io.h"
-#include "lora_registers.h"
-#include "lora_utility.h"
+#include "driver/lora_driver.h"
+
+extern void spidev_close(); // function from lora_api_impl.c
+extern void spidev_open(char* dev); // function from lora_api_impl.c
+
+lora_status_t temp_init(void)
+{
+   lora_status_t ret;
+
+   uint8_t version;
+   uint8_t i = 0;
+   while (i++ < TIMEOUT_RESET)
+   {
+      lora_read_reg(REG_VERSION, &version);
+      printf("version=0x%02x\n", version);
+      if (version == 0x12)
+         break;
+      sleep(20);
+   }
+   printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
+
+   if (i == TIMEOUT_RESET + 1)
+      return LORA_FAILED_INIT;
+
+   ret = lora_sleep_mode();
+   ret += lora_write_reg(REG_FIFO_RX_BASE_ADDR, 0);
+   ret += lora_write_reg(REG_FIFO_TX_BASE_ADDR, 0);
+   uint8_t lna_val;
+   lora_read_reg(REG_LNA, &lna_val);
+   ret += lora_write_reg(REG_LNA, lna_val | 0x03);
+   ret += lora_write_reg(REG_MODEM_CONFIG_3, 0x04);
+   ret += lora_set_tx_power(17);
+
+   ret += lora_idle_mode();
+
+   return ret;
+}
 
 int main()
 {
-    //spi_init();
+    spidev_open("/dev/spidev0.0");
 
-    int fd = open("/dev/spidev0.0", O_RDWR);
-    if (fd == 0) {
-        perror("Can't open device. Check permissions and if file exists");
-        return 1;
+    temp_init();
+
+    lora_idle_mode();
+
+    lora_set_frequency(433);
+    lora_set_bandwidth(4);
+    lora_set_coding_rate(8);
+    lora_set_spreading_factor(12);
+    lora_enable_crc();
+
+    lora_write_reg(REG_PAYLOAD_LENGTH, 0x04); // temporary size
+    uint8_t payload_length;
+    lora_read_reg(REG_PAYLOAD_LENGTH, &payload_length);
+
+    uint8_t* buf;
+    buf = (uint8_t*) calloc(payload_length, sizeof(uint8_t));
+
+    for(uint8_t i = 0x00; i < payload_length; i++) { 
+        buf[(int)i] = i; // 0x00, 0x01, 0x02, 0x03
     }
 
-	// Reset the chip
-    //lora_reset();
+    if (lora_send_packet(buf, sizeof(buf)) == LORA_OK)
+        printf("Packet sent successfully.\n"); // puts LoRa in sleep mode
+                                               
+    free(buf);
 
-	// Set LoRa Sleep mode
-	printf("Setting LORA_SLEEP...");
-	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
-	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
-
-    lora_initialize(fd);
-
-    // Set LoRa Standby mode
-	printf("Setting LORA_STANDBY...");
-	spi_write_register(fd, OP_MODE, LORA_STANDBY); 
-	while(spi_read_register(fd, OP_MODE) != LORA_STANDBY) {}
-	printf(" LORA_STANDBY set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
-
-	// Fill the FIFO with data to transmit:
-	// 1) Set FifoPtrAddr to FifoTxPtrBase
-	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
-
-	spi_write_register(fd, PAYLOAD_LENGTH, 0x06); // 6 bytes for testing purposes
-	printf("PAYLOAD_LENGTH: 0x%02X \n", spi_read_register(fd, PAYLOAD_LENGTH));
-
-	// 2) Write PAYLOAD_LENGTH bytes to the FIFO
-	for(uint8_t i = 0x00; i < spi_read_register(fd, PAYLOAD_LENGTH); i++) {
-		spi_write_register(fd, FIFO, i + 16);
-	}
-
-	// Set FifoPtrAddr to FifoTxPtrBase to read written data
-	spi_write_register(fd, FIFO_ADDR_PTR, spi_read_register(fd, FIFO_TX_BASE_ADDR));
-
-    printf("Data to send:\n");
-	for(uint8_t i = 0x00; i < spi_read_register(fd, PAYLOAD_LENGTH); i++) {
-		printf("[%d] FIFO address: 0x%02X, data: 0x%02X \n", i, spi_read_register(fd, FIFO_ADDR_PTR), spi_read_register(fd, FIFO));
-	}
-
-	// Set TX mode to initiate data transmission
-	// CAUTION: DO NOT initiate transmission unless antenna is attached to LoRa
-	spi_write_register(fd, OP_MODE, LORA_TX);
-
-	// Wait until TxDone interrupt is set
-	while((spi_read_register(fd, IRQ_FLAGS) & 0x08) != 0x08) {}
-
-	printf("Packet sent successfully - IRQ_FLAGS: 0x%02X\n", spi_read_register(fd, IRQ_FLAGS));
-	// Write 1 to clear the interrupt
-    spi_write_register(fd, IRQ_FLAGS, 0xFF);
-
-	// Put LoRa in Sleep mode
-	printf("Setting LORA_SLEEP...");
-	spi_write_register(fd, OP_MODE, LORA_SLEEP);
-	while(spi_read_register(fd, OP_MODE) != LORA_SLEEP) {}
-	printf(" LORA_SLEEP set [OP_MODE: 0x%02X]\n", spi_read_register(fd, OP_MODE));
-
-	close(fd);
-	return 0;
+    spidev_close();
 }
