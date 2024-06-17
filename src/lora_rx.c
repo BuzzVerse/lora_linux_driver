@@ -6,8 +6,10 @@
 
 #include "driver/lora_driver.h"
 
-extern void spidev_close(); // function from lora_api_impl.c
-extern void spidev_open(char* dev); // function from lora_api_impl.c
+// functions from bbb_api_impl.c
+extern void spidev_close();
+extern void spidev_open(char* dev);
+extern void print_buffer(uint8_t* buf, uint8_t len);
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -17,13 +19,6 @@ void handle_sigint(int sig) {
     spidev_close();
 
     exit(0);
-}
-
-void print_buffer(uint8_t* buf, uint8_t len) {
-    printf("Data received:\n");
-    for(uint8_t i = 0x00; i < len; i++) {
-        printf("0x%02X\n", *(buf + i));
-    }
 }
 
 int main()

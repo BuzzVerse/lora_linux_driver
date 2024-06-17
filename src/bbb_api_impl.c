@@ -170,3 +170,10 @@ void spidev_close() {
     close(fd);
     printf("Closed fd: %d\n", fd);
 }
+
+void print_buffer(uint8_t* buf, uint8_t len) {
+    printf("Data received:\n");
+    for(uint8_t i = 0x00; i < len; i++) {
+        printf("0x%02X\n", *(buf + i));
+    }
+}
