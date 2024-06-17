@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "driver/lora_driver.h"
+#include "../protocols/packet/packet.h"
 
 extern void spidev_close(); // function from lora_api_impl.c
 extern void spidev_open(char* dev); // function from lora_api_impl.c
@@ -55,21 +56,32 @@ int main()
     lora_set_spreading_factor(12);
     lora_enable_crc();
 
-    lora_write_reg(REG_PAYLOAD_LENGTH, 0x04); // temporary size
+    // example packet data
+    packet_t packet;
+    packet.version = 0x01;
+    packet.id = 0x00;
+    packet.msgID = 0x01;
+    packet.msgCount = 0x00;
+    packet.dataType = 0x01;
+    packet.data[0] = 25;
+    packet.data[1] = 1;
+    packet.data[2] = 50;
+
+    lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE);
     uint8_t payload_length;
     lora_read_reg(REG_PAYLOAD_LENGTH, &payload_length);
 
-    uint8_t* buf;
-    buf = (uint8_t*) calloc(payload_length, sizeof(uint8_t));
+    //uint8_t* buf;
+    //buf = (uint8_t*) calloc(payload_length, sizeof(uint8_t));
 
     for(uint8_t i = 0x00; i < payload_length; i++) { 
-        buf[(int)i] = i; // 0x00, 0x01, 0x02, 0x03
+        //buf[(int)i] = i; // 0x00, 0x01, 0x02, 0x03
     }
 
-    if (lora_send_packet(buf, sizeof(buf)) == LORA_OK)
+    if (lora_send_packet((uint8_t*)&packet, PACKET_SIZE) == LORA_OK)
         printf("Packet sent successfully.\n"); // puts LoRa in sleep mode
                                                
-    free(buf);
+    //free(buf);
 
     spidev_close();
 }
