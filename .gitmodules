@@ -1,3 +1,6 @@
 [submodule "include"]
 	path = include
 	url = git@github.com:BuzzVerse/lora.driver.git
+[submodule "protocols"]
+	path = protocols
+	url = git@github.com:BuzzVerse/protocols.git
