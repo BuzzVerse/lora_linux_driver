@@ -50,7 +50,7 @@ int main()
 
     lora_idle_mode();
 
-    lora_set_frequency(433);
+    lora_set_frequency(433 * 1e6);
     lora_set_bandwidth(4);
     lora_set_coding_rate(8);
     lora_set_spreading_factor(12);
