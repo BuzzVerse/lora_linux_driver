@@ -17,18 +17,22 @@ static int fd;
 
 api_status_t spi_init(void) {
     // Enable SPI
+
     // For SPI0, /dev/spidev0.#
-    system("config-pin p9_17 spi_cs");
-    system("config-pin p9_18 spi");
-    system("config-pin p9_21 spi");
-    system("config-pin p9_22 spi_sclk");
+    // default pinout config
+    system("config-pin p9_17 spi_cs");      // NSS
+    system("config-pin p9_18 spi");         // MOSI
+    system("config-pin p9_21 spi");         // MISO
+    system("config-pin p9_22 spi_sclk");    // SCK
 
     // For SPI1, /dev/spidev1.#
-    system("config-pin p9_28 spi_cs");
-    system("config-pin p9_29 spi");
-    system("config-pin p9_30 spi");
-    system("config-pin p9_31 spi_sclk");
+    system("config-pin p9_28 spi_cs");      // NSS
+    system("config-pin p9_29 spi");         // MISO
+    system("config-pin p9_30 spi");         // MOSI
+    system("config-pin p9_31 spi_sclk");    // SCK
 
+    // GPIO_66 = RST for LoRa attached to SPI0
+    // GPIO_69 = RST for LoRa attached to SPI1
     FILE *gpio66d, *gpio66v, *gpio69d, *gpio69v;
     gpio66d = fopen("/sys/class/gpio/gpio66/direction", "w");
     gpio66v = fopen("/sys/class/gpio/gpio66/value", "w");
