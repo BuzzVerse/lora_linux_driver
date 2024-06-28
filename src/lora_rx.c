@@ -6,6 +6,7 @@
 
 #include "mqtt/mqtt.h"
 #include "driver/lora_driver.h"
+#include "packet/packet.h"
 
 // functions from bbb_api_impl.c
 extern void spidev_close();
@@ -41,7 +42,7 @@ int main()
 
     lora_receive_mode();
 
-    uint8_t buf[32]; // temporary buffer size
+    packet_t packet;
     bool received = false;
     bool crc_error = false;
     uint8_t irq;
@@ -53,12 +54,12 @@ int main()
             lora_get_irq(&irq);
 
             if(crc_error) {
-                printf("CRC error.\n");
+                printf("CRC error\n");
                 crc_error = false;
             } else {
                 uint8_t return_len;
-                lora_receive_packet(buf, &return_len, sizeof(buf)); // puts LoRa in idle mode!!!
-                print_buffer(buf, return_len);
+                lora_receive_packet((uint8_t*)&packet, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
+                print_buffer((uint8_t*)&packet, return_len);
                 lora_receive_mode();
             }
             
