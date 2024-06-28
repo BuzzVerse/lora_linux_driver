@@ -29,11 +29,6 @@ api_status_t spi_init(void) {
     system("config-pin p9_30 spi");
     system("config-pin p9_31 spi_sclk");
 
-    // TODO Enable GPIO pins like in gpio_enable.sh OR maybe in a separate function?
-    // gpio66_direction=/sys/class/gpio/gpio66/direction
-    // gpio66_value=/sys/class/gpio/gpio66/value
-    // gpio69_direction=/sys/class/gpio/gpio69/direction
-    // gpio69_value=/sys/class/gpio/gpio69/value
     FILE *gpio66d, *gpio66v, *gpio69d, *gpio69v;
     gpio66d = fopen("/sys/class/gpio/gpio66/direction", "w");
     gpio66v = fopen("/sys/class/gpio/gpio66/value", "w");
