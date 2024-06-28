@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
 
 #include "mqtt/mqtt.h"
 #include "driver/lora_driver.h"
@@ -23,12 +24,28 @@ void handle_sigint(int sig) {
     exit(0);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if(argc != 2) {
+        printf("Invalid number of arguments\nUsage: sudo ./lora_rx [SPI device number: 0 | 1]\n");
+        return -1;
+    }
+
+    char* device;
+
+    if(strcmp(argv[1], "0") == 0) {
+        device = "/dev/spidev0.0";
+    } else if(strcmp(argv[1], "1") == 0) {
+        device = "/dev/spidev1.0";
+    } else {
+        printf("Invalid SPI device\n");
+        return -2;
+    }
+
     // signal handler for CTRL-C
     signal(SIGINT, handle_sigint);
 
-    spidev_open("/dev/spidev1.0");
+    spidev_open(device);
 
     lora_driver_init();
 

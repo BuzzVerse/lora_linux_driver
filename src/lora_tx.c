@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
@@ -42,9 +43,25 @@ lora_status_t temp_init(void)
    return ret;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    spidev_open("/dev/spidev0.0");
+    if(argc != 2) {
+        printf("Invalid number of arguments\nUsage: sudo ./lora_rx [SPI device number: 0 | 1]\n");
+        return -1;
+    }
+
+    char* device;
+
+    if(strcmp(argv[1], "0") == 0) {
+        device = "/dev/spidev0.0";
+    } else if(strcmp(argv[1], "1") == 0) {
+        device = "/dev/spidev1.0";
+    } else {
+        printf("Invalid SPI device\n");
+        return -2;
+    }
+
+    spidev_open(device);
 
     temp_init();
 
