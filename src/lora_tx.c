@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #include "driver/lora_driver.h"
-#include "../protocols/packet/packet.h"
+#include "packet/packet.h"
 
 extern void spidev_close(); // function from lora_api_impl.c
 extern void spidev_open(char* dev); // function from lora_api_impl.c
