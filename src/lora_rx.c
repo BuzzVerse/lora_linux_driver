@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "mqtt/mqtt.h"
 #include "driver/lora_driver.h"
 
 // functions from bbb_api_impl.c
