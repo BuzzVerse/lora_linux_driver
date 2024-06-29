@@ -65,7 +65,11 @@ int main(int argc, char* argv[])
         return -1; // exit if fd fails to open
     }
 
-    temp_init();
+    if(temp_init() == LORA_FAILED_INIT) {
+        printf("temp_init() failed\n");
+        spidev_close();
+        return -1;
+    }
 
     lora_idle_mode();
 
