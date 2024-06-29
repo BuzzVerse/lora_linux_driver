@@ -160,9 +160,14 @@ void lora_reset(void) {
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
 }
 
-void spidev_open(const char* device) {
+int spidev_open(const char* device) {
     fd = open(device, O_RDWR);
-    printf("Opened device %s, fd = %d\n", device, fd);
+    if(fd == -1) {
+        printf("Failed to open fd\n");
+    } else {
+        printf("Opened device %s, fd = %d\n", device, fd);
+    }
+    return fd;
 }
 
 void spidev_close() {

@@ -8,7 +8,7 @@
 #include "packet/packet.h"
 
 extern void spidev_close(); // function from lora_api_impl.c
-extern void spidev_open(char* dev); // function from lora_api_impl.c
+extern int spidev_open(char* dev); // function from lora_api_impl.c
 
 lora_status_t temp_init(void)
 {
@@ -61,7 +61,9 @@ int main(int argc, char* argv[])
         return -2;
     }
 
-    spidev_open(device);
+    if(spidev_open(device) == -1) {
+        return -1; // exit if fd fails to open
+    }
 
     temp_init();
 

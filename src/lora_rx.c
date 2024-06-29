@@ -14,7 +14,7 @@
 
 // functions from bbb_api_impl.c
 extern void spidev_close();
-extern void spidev_open(char* dev);
+extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 
 // void publish_callback(void** unused, struct mqtt_response_publish *published) {}
@@ -56,7 +56,9 @@ int main(int argc, char* argv[])
     // signal handler for CTRL-C
     signal(SIGINT, handle_sigint);
 
-    spidev_open(device);
+    if(spidev_open(device) == -1) {
+        return -1; // exit if fd fails to open
+    }
 
     lora_driver_init();
 
