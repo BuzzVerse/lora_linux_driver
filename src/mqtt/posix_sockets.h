@@ -22,12 +22,12 @@ int open_nb_socket(const char* addr, const char* port) {
     int rv;
     struct addrinfo *p, *servinfo;
 
-    // /* get address information */
-    // rv = getaddrinfo(addr, port, &hints, &servinfo);
-    // if(rv != 0) {
-    //     fprintf(stderr, "Failed to open socket (getaddrinfo): %s\n", gai_strerror(rv));
-    //     return -1;
-    // }
+    /* get address information */
+    rv = getaddrinfo(addr, port, &hints, &servinfo);
+    if(rv != 0) {
+        fprintf(stderr, "Failed to open socket (getaddrinfo): %s\n", gai_strerror(rv));
+        return -1;
+    }
 
     /* open the first possible socket */
     for(p = servinfo; p != NULL; p = p->ai_next) {
