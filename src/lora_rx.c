@@ -66,13 +66,15 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    lora_idle_mode();
-
-    lora_set_frequency(433 * 1e6);
-    lora_set_bandwidth(4);
-    lora_set_coding_rate(8);
-    lora_set_spreading_factor(12);
-    lora_enable_crc();
+    lora_status_t ret;
+    ret = lora_set_frequency(433 * 1e6);
+    ret += lora_set_bandwidth(4);
+    ret += lora_set_coding_rate(8);
+    ret += lora_set_spreading_factor(12);
+    ret += lora_enable_crc();
+    if(ret != LORA_OK) {
+        printf("Parameter setting failed\n");
+    }
 
     lora_receive_mode();
 
