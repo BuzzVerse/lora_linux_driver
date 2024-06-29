@@ -74,6 +74,8 @@ int main(int argc, char* argv[])
     ret += lora_enable_crc();
     if(ret != LORA_OK) {
         printf("Parameter setting failed\n");
+        spidev_close();
+        return -1;
     }
 
     lora_receive_mode();
