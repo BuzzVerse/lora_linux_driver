@@ -28,7 +28,9 @@ extern void print_buffer(uint8_t* buf, uint8_t len);
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
-    lora_sleep_mode();
+    if(lora_sleep_mode() != LORA_OK) {
+        printf("Failed to set sleep mode.\n");
+    }
 
     spidev_close();
 
@@ -50,7 +52,7 @@ int main(int argc, char* argv[])
         device = "/dev/spidev1.0";
     } else {
         printf("Invalid SPI device\n");
-        return -2;
+        return -1;
     }
 
     // signal handler for CTRL-C
@@ -61,7 +63,7 @@ int main(int argc, char* argv[])
     }
 
     if(lora_driver_init() == LORA_FAILED_INIT) {
-        printf("lora_driver_init() failed\n");
+        printf("Failed to initialize the driver\n");
         spidev_close();
         return -1;
     }
@@ -73,12 +75,16 @@ int main(int argc, char* argv[])
     ret += lora_set_spreading_factor(12);
     ret += lora_enable_crc();
     if(ret != LORA_OK) {
-        printf("Parameter setting failed\n");
+        printf("Failed to set radio parameters\n");
         spidev_close();
         return -1;
     }
 
-    lora_receive_mode();
+    if(lora_receive_mode() != LORA_OK) {
+        printf("Failed to set receive mode\n");
+        spidev_close();
+        return -1;
+    }
 
     packet_t packet;
     bool received = false;
@@ -152,7 +158,13 @@ int main(int argc, char* argv[])
     }
     // exit_mqtt(EXIT_FAILURE, sockfd, &client_daemon);
 
-    lora_sleep_mode();
+    if(lora_sleep_mode() != LORA_OK) {
+        printf("Failed to set sleep mode\n");
+        spidev_close();
+        return -1;
+    }
 
     spidev_close();
+
+    return 0;
 }
