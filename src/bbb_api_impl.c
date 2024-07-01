@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/spi/spidev.h> 
+#include <linux/spi/spidev.h>
+#include <time.h>
 
 #include "api/driver_api.h"
 #include "colors.h"
@@ -13,7 +14,28 @@
 #define SPI_WRITE       0x80
 #define SPI_SPEED_HZ    500000
 
+#define LOGFILE         "/var/log/lora.log"
+
 static int fd;
+
+int loginfo(const char* msg) {
+    FILE* fptr;
+    fptr = fopen(LOGFILE, "a");
+    if(fptr == NULL) {
+        printf("Error opening logfile\n");
+        return -1;
+    }
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char buf[64]; // mind the buffer size
+    strftime(buf, sizeof(buf), "%y-%m-%d %H:%M:%S", tm);
+
+    fprintf(fptr, "[%s] %s", buf, msg);
+
+    fclose(fptr);
+    return 0;
+}
 
 api_status_t spi_init(void) {
     // Enable SPI
@@ -164,6 +186,7 @@ int spidev_open(const char* device) {
     fd = open(device, O_RDWR);
     if(fd == -1) {
         printf("Failed to open fd\n");
+        loginfo("Failed to open fd\n");
     } else {
         printf("Opened device %s, fd = %d\n", device, fd);
     }

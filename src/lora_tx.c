@@ -7,8 +7,10 @@
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 
-extern void spidev_close(); // function from lora_api_impl.c
-extern int spidev_open(char* dev); // function from lora_api_impl.c
+// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
+extern void spidev_close();
+extern int spidev_open(char* dev);
+extern int loginfo(const char* msg);
 
 lora_status_t temp_init(void)
 {
@@ -67,6 +69,7 @@ int main(int argc, char* argv[])
 
     if(temp_init() == LORA_FAILED_INIT) {
         printf("Failed to initialize the driver\n");
+        loginfo("Failed to initialize the driver\n");
         spidev_close();
         return -1;
     }
@@ -79,6 +82,7 @@ int main(int argc, char* argv[])
     ret += lora_enable_crc();
     if(ret != LORA_OK) {
         printf("Failed to set radio parameters\n");
+        loginfo("Failed to set radio parameters\n");
         spidev_close();
         return -1;
     }
@@ -96,14 +100,17 @@ int main(int argc, char* argv[])
 
     if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
         printf("Failed to set payload length\n");
+        loginfo("Failed to set payload length\n");
         spidev_close();
         return -1;
     }
 
     if (lora_send_packet((uint8_t*)&packet, PACKET_SIZE) == LORA_OK) {  // puts LoRa in sleep mode
         printf("Packet sent successfully.\n");
+        loginfo("Packet sent successfully.\n");
     } else {
         printf("Failed to send packet\n");
+        loginfo("Failed to send packet\n");
     }
 
     spidev_close();

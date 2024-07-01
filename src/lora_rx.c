@@ -12,10 +12,11 @@
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 
-// functions from bbb_api_impl.c
+// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
 extern void spidev_close();
 extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
+extern int loginfo(const char* msg);
 
 void publish_callback(void** unused, struct mqtt_response_publish *published) {}
 void* client_refresher(void* client) {
@@ -40,6 +41,12 @@ void handle_sigint(int sig) {
     spidev_close();
 
     exit(0);
+}
+
+void packet_to_string(packet_t packet, char* destination) {
+    snprintf(destination, 100,
+            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: [0x%02X, 0x%02X, 0x%02X]",
+            packet.version, packet.id, packet.msgID, packet.msgCount, packet.dataType, packet.data[0], packet.data[1], packet.data[2]);
 }
 
 int main(int argc, char* argv[])
@@ -69,6 +76,7 @@ int main(int argc, char* argv[])
 
     if(lora_driver_init() == LORA_FAILED_INIT) {
         printf("Failed to initialize the driver\n");
+        loginfo("Failed to initialize the driver\n");
         spidev_close();
         return -1;
     }
@@ -81,12 +89,14 @@ int main(int argc, char* argv[])
     ret += lora_enable_crc();
     if(ret != LORA_OK) {
         printf("Failed to set radio parameters\n");
+        loginfo("Failed to set radio parameters\n");
         spidev_close();
         return -1;
     }
 
     if(lora_receive_mode() != LORA_OK) {
         printf("Failed to set receive mode\n");
+        loginfo("Failed to set receive mode\n");
         spidev_close();
         return -1;
     }
@@ -102,6 +112,7 @@ int main(int argc, char* argv[])
     int sockfd = open_nb_socket(ip, port);
     if (sockfd == -1) {
         perror("Failed to open socket: ");
+        loginfo("Failed to open MQTT socket\n");
         exit_mqtt(EXIT_FAILURE, sockfd, NULL);
     }
 
@@ -135,10 +146,16 @@ int main(int argc, char* argv[])
 
             if(crc_error) {
                 printf("CRC error\n");
+                loginfo("CRC error\n");
                 crc_error = false;
             } else {
                 uint8_t return_len;
                 lora_receive_packet((uint8_t*)&packet, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
+ 
+                char raw_data[100];
+                packet_to_string(packet, raw_data);
+                loginfo(raw_data); // logging raw received data
+
                 // unpack data
                 float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
                 float received_press = (float)(1000 + (int8_t)packet.data[1]);
@@ -152,7 +169,9 @@ int main(int argc, char* argv[])
                     fprintf(stderr, "error: %s\n", mqtt_error_str(client.error));
                     exit_mqtt(EXIT_FAILURE, sockfd, &client_daemon);
                 }
+
                 print_buffer((uint8_t*)&packet, return_len);
+                loginfo(msg); // logging unpacked data
 
                 lora_receive_mode();
             }
@@ -164,6 +183,7 @@ int main(int argc, char* argv[])
 
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode\n");
+        loginfo("Failed to set sleep mode\n");
         spidev_close();
         return -1;
     }
