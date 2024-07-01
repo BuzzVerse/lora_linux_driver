@@ -7,8 +7,13 @@
     - transmitter: run "lora_tx" in sudo mode
     - DISCLAIMER: receiver needs to be ran first (at the moment, receiver program contains hardware initialization)
 
-# Dependencies
-1. For json parsing
+# MQTT config
+1. Create the config file at /etc/mqtt_config
+1. Config file should look like this:
 
-```https://github.com/DaveGamble/cJSON```
-
+```
+ip=192.168.0.69
+port=12345
+login=buzzverse
+password=verysecurepassword
+```
