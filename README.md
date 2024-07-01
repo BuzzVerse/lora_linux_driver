@@ -9,11 +9,16 @@
 
 # MQTT config
 1. Create the config file at /etc/mqtt_config
+1. Elements in config need to be in order:
+    1. ip
+    2. port
+    3. login
+    4. password
 1. Config file should look like this:
-
 ```
 ip=192.168.0.69
 port=12345
 login=buzzverse
 password=verysecurepassword
 ```
+
