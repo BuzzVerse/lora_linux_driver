@@ -14,7 +14,7 @@
 
 // functions from bbb_api_impl.c
 extern void spidev_close();
-extern void spidev_open(char* dev);
+extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 
 void publish_callback(void** unused, struct mqtt_response_publish *published) {}
@@ -33,7 +33,9 @@ void exit_mqtt(int status, int sockfd, pthread_t *client_daemon) {
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
-    lora_sleep_mode();
+    if(lora_sleep_mode() != LORA_OK) {
+        printf("Failed to set sleep mode.\n");
+    }
 
     spidev_close();
 
@@ -55,25 +57,39 @@ int main(int argc, char* argv[])
         device = "/dev/spidev1.0";
     } else {
         printf("Invalid SPI device\n");
-        return -2;
+        return -1;
     }
 
     // signal handler for CTRL-C
     signal(SIGINT, handle_sigint);
 
-    spidev_open(device);
+    if(spidev_open(device) == -1) {
+        return -1; // exit if fd fails to open
+    }
 
-    lora_driver_init();
+    if(lora_driver_init() == LORA_FAILED_INIT) {
+        printf("Failed to initialize the driver\n");
+        spidev_close();
+        return -1;
+    }
 
-    lora_idle_mode();
+    lora_status_t ret;
+    ret = lora_set_frequency(433 * 1e6);
+    ret += lora_set_bandwidth(4);
+    ret += lora_set_coding_rate(8);
+    ret += lora_set_spreading_factor(12);
+    ret += lora_enable_crc();
+    if(ret != LORA_OK) {
+        printf("Failed to set radio parameters\n");
+        spidev_close();
+        return -1;
+    }
 
-    lora_set_frequency(433 * 1e6);
-    lora_set_bandwidth(4);
-    lora_set_coding_rate(8);
-    lora_set_spreading_factor(12);
-    lora_enable_crc();
-
-    lora_receive_mode();
+    if(lora_receive_mode() != LORA_OK) {
+        printf("Failed to set receive mode\n");
+        spidev_close();
+        return -1;
+    }
 
     packet_t packet;
     bool received = false;
@@ -146,7 +162,13 @@ int main(int argc, char* argv[])
     }
     exit_mqtt(EXIT_FAILURE, sockfd, &client_daemon);
 
-    lora_sleep_mode();
+    if(lora_sleep_mode() != LORA_OK) {
+        printf("Failed to set sleep mode\n");
+        spidev_close();
+        return -1;
+    }
 
     spidev_close();
+
+    return 0;
 }
