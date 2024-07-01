@@ -51,41 +51,6 @@ void packet_to_string(packet_t packet, char* destination) {
             packet.version, packet.id, packet.msgID, packet.msgCount, packet.dataType, packet.data[0], packet.data[1], packet.data[2]);
 }
 
-// elements in config need to be in order:
-// 1. ip
-// 2. port
-// 3. login
-// 4. password
-void read_mqtt_config(mqtt_config* config) {
-    FILE* fp;
-    char* line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    char buffer[4][64];
-    int i = 0;
-
-    fp = fopen("/etc/mqtt_config", "r");
-    if (fp == NULL) {
-        printf("Cannot read mqtt config file at /etc/mqtt_config");
-        exit(-1);
-    }
-
-    // copy config to buffer
-    while ((read = getline(&line, &len, fp)) != -1) {
-        strcpy(buffer[i], line);
-        i++;
-    }
-
-    // copy buffer to mqtt_config struct
-    strcpy(config->ip, strstr(buffer[0], "=") + 1);
-    strcpy(config->port, strstr(buffer[1], "=") + 1);
-    strcpy(config->login, strstr(buffer[2], "=") + 1);
-    strcpy(config->password, strstr(buffer[3], "=") + 1);
-
-    fclose(fp);
-    if (line) { free(line); }
-}
-
 int main(int argc, char* argv[])
 {
     if(argc != 2) {
