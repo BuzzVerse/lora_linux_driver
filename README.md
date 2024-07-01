@@ -6,3 +6,9 @@
     - receiver: run "lora_rx" in sudo mode
     - transmitter: run "lora_tx" in sudo mode
     - DISCLAIMER: receiver needs to be ran first (at the moment, receiver program contains hardware initialization)
+
+# Dependencies
+1. For json parsing
+
+```https://github.com/DaveGamble/cJSON```
+
