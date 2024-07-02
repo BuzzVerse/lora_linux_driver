@@ -6,10 +6,9 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <mosquitto.h>
 
-#include "mqtt/mqtt.h"
-#include "mqtt/posix_sockets.h"
-#include "mqtt/mqtt_config.h"
+#include "mqtt_config.h"
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 
@@ -19,19 +18,6 @@ extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 extern int loginfo(const char* msg);
 
-// for mqtt
-void publish_callback(void** unused, struct mqtt_response_publish *published) {}
-void* client_refresher(void* client) {
-    while (1) {
-        mqtt_sync((struct mqtt_client*) client);
-        usleep(100000U);
-    }
-}
-void exit_mqtt(int status, int sockfd, pthread_t *client_daemon) {
-    if (sockfd != -1) close(sockfd);
-    if (client_daemon != NULL) pthread_cancel(*client_daemon);
-    exit(status);
-}
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -108,39 +94,22 @@ int main(int argc, char* argv[])
     bool crc_error = false;
     uint8_t irq;
 
-    // mqtt stuff
+    // mqtt config
     mqtt_config mqtt_config;
     read_mqtt_config(&mqtt_config);
 
-    char* ip = mqtt_config.ip;
-    char* port = mqtt_config.port;
-    int sockfd = open_nb_socket(ip, port);
-    if (sockfd == -1) {
-        perror("Failed to open socket: ");
-        loginfo("Failed to open MQTT socket\n");
-        exit_mqtt(EXIT_FAILURE, sockfd, NULL);
+    // mqtt client
+    int rc;
+    mosquitto_lib_init();
+    struct mosquitto* mosq = mosquitto_new("lora-linux", true, NULL);
+    mosquitto_username_pw_set(mosq, mqtt_config.login, mqtt_config.password);
+    rc = mosquitto_connect(mosq, mqtt_config.ip, mqtt_config.port, 60);
+    if (rc != 0) {
+        printf("MQTT client could not connect to broker. Error code: %d\n", rc);
+        mosquitto_destroy(mosq);
+        return -1;
     }
-
-    struct mqtt_client client;
-    uint8_t mqtt_out_buff[256];
-    uint8_t mqtt_in_buff[64];
-    mqtt_init(&client, sockfd, mqtt_out_buff, sizeof(mqtt_out_buff), mqtt_in_buff, sizeof(mqtt_in_buff), publish_callback);
-    const char* client_id = NULL;
-    uint8_t connect_flags = MQTT_CONNECT_CLEAN_SESSION;
-    char* username = mqtt_config.login;
-    char* password = mqtt_config.password;
-    mqtt_connect(&client, "MQTT", NULL, NULL, 0, username, password, 0, 400);
-
-    if (client.error != MQTT_OK) {
-        fprintf(stderr, "error: %s\n", mqtt_error_str(client.error));
-        exit_mqtt(EXIT_FAILURE, sockfd, NULL);
-    }
-
-    pthread_t client_daemon;
-    if(pthread_create(&client_daemon, NULL, client_refresher, &client)) {
-        fprintf(stderr, "Failed to start client daemon.\n");
-        exit_mqtt(EXIT_FAILURE, sockfd, NULL);
-    }
+    printf("MQTT client connected to broker.");
 
     while(1) {
         lora_received(&received, &crc_error);
@@ -165,15 +134,12 @@ int main(int argc, char* argv[])
                 float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
                 float received_press = (float)(1000 + (int8_t)packet.data[1]);
                 float received_hum = (float)packet.data[2];
+
                 // write message
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
-                mqtt_publish(&client, "tele/lora/SENSOR_SPANISH", msg, strlen(msg) + 1, MQTT_PUBLISH_QOS_0);
-
-                if (client.error != MQTT_OK) {
-                    fprintf(stderr, "error: %s\n", mqtt_error_str(client.error));
-                    exit_mqtt(EXIT_FAILURE, sockfd, &client_daemon);
-                }
+                // publish message through mqtt
+                mosquitto_publish(mosq, NULL, "tele/lora/SENSOR_SPANISH", strlen(msg), msg, 1, false);
 
                 print_buffer((uint8_t*)&packet, return_len);
                 loginfo(msg); // logging unpacked data
@@ -184,7 +150,11 @@ int main(int argc, char* argv[])
             received = false;
         }
     }
-    exit_mqtt(EXIT_FAILURE, sockfd, &client_daemon);
+    //cleanup mqtt
+    mosquitto_disconnect(mosq);
+    mosquitto_destroy(mosq);
+    mosquitto_lib_cleanup();
+
 
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode\n");

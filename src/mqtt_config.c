@@ -20,7 +20,8 @@ void read_mqtt_config(mqtt_config* config) {
         if (strncmp(line, "ip", 2)) {
             strcpy(config->ip, strstr(line, "=") + 1);
         } else if (strncmp(line, "port", 4)) {
-            strcpy(config->port, strstr(line, "=") + 1);
+            char* end;
+            config->port = (int) strtol(strstr(line, "=") + 1, &end, 10);
         } else if (strncmp(line, "login", 5)) {
             strcpy(config->login, strstr(line, "=") + 1);
         } else if (strncmp(line, "password", 8)) {

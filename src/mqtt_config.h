@@ -5,7 +5,7 @@
 
 typedef struct {
     char ip[17];
-    char port[6];
+    int port;
     char login[64];
     char password[64];
     char topic[64];

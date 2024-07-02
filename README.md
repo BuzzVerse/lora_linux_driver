@@ -7,6 +7,11 @@
     - transmitter: run "lora_tx" in sudo mode
     - DISCLAIMER: receiver needs to be ran first (at the moment, receiver program contains hardware initialization)
 
+# MQTT dependencies
+```
+$ sudo apt install mosquitto mosquitto-clients libmosquitto-dev
+```
+
 # MQTT config
 1. Create the config file at /etc/mqtt_config
 1. Config file should look like this:
