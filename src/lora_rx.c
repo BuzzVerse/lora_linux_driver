@@ -6,9 +6,7 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <string.h>
-#include <mosquitto.h>
 
-#include "mqtt_config.h"
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 
@@ -94,23 +92,6 @@ int main(int argc, char* argv[])
     bool crc_error = false;
     uint8_t irq;
 
-    // mqtt config
-    mqtt_config mqtt_config;
-    read_mqtt_config(&mqtt_config);
-
-    // mqtt client
-    int rc;
-    mosquitto_lib_init();
-    struct mosquitto* mosq = mosquitto_new("lora-linux", true, NULL);
-    mosquitto_username_pw_set(mosq, mqtt_config.login, mqtt_config.password);
-    rc = mosquitto_connect(mosq, mqtt_config.ip, mqtt_config.port, 60);
-    if (rc != 0) {
-        printf("MQTT client could not connect to broker. Error code: %d\n", rc);
-        mosquitto_destroy(mosq);
-        return -1;
-    }
-    printf("MQTT client connected to broker.");
-
     while(1) {
         lora_received(&received, &crc_error);
 
@@ -138,8 +119,6 @@ int main(int argc, char* argv[])
                 // write message
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
-                // publish message through mqtt
-                mosquitto_publish(mosq, NULL, "tele/lora/SENSOR_SPANISH", strlen(msg), msg, 1, false);
 
                 print_buffer((uint8_t*)&packet, return_len);
                 loginfo(msg); // logging unpacked data
@@ -150,12 +129,7 @@ int main(int argc, char* argv[])
             received = false;
         }
     }
-    //cleanup mqtt
-    mosquitto_disconnect(mosq);
-    mosquitto_destroy(mosq);
-    mosquitto_lib_cleanup();
-
-
+    
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode\n");
         loginfo("Failed to set sleep mode\n");

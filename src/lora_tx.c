@@ -89,14 +89,14 @@ int main(int argc, char* argv[])
 
     // example packet data
     packet_t packet;
-    packet.version = 0x01;
-    packet.id = 0x00;
-    packet.msgID = 0x01;
+    packet.version = 0x11;
+    packet.id = 0x22;
+    packet.msgID = 0x33;
     packet.msgCount = 0x00;
-    packet.dataType = 0x01;
-    packet.data[0] = 25;
+    packet.dataType = 1; // BME280
+    packet.data[0] = 23;
     packet.data[1] = 1;
-    packet.data[2] = 50;
+    packet.data[2] = 40;
 
     if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
         printf("Failed to set payload length\n");
