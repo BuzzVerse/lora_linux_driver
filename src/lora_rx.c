@@ -16,7 +16,6 @@ extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 extern int loginfo(const char* msg);
 
-
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
@@ -33,6 +32,12 @@ void packet_to_string(packet_t packet, char* destination) {
     snprintf(destination, 100,
             "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: [0x%02X, 0x%02X, 0x%02X]\n",
             packet.version, packet.id, packet.msgID, packet.msgCount, packet.dataType, packet.data[0], packet.data[1], packet.data[2]);
+}
+
+void buffer_to_string(uint8_t* buffer, char* destination) {
+    snprintf(destination, 100,
+            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: [0x%02X, 0x%02X, 0x%02X]\n",
+            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
 }
 
 int main(int argc, char* argv[])
@@ -87,7 +92,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    packet_t packet;
+    uint8_t buffer[PACKET_SIZE];
+    packet_t *packet;
     bool received = false;
     bool crc_error = false;
     uint8_t irq;
@@ -105,22 +111,32 @@ int main(int argc, char* argv[])
                 crc_error = false;
             } else {
                 uint8_t return_len;
-                lora_receive_packet((uint8_t*)&packet, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
- 
+                //lora_receive_packet((uint8_t*)&packet, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
+                lora_receive_packet(buffer, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
+                
+                print_buffer(buffer, sizeof(buffer));
+               
+                packet->version = buffer[0];
+                packet->id = buffer[1];
+                packet->msgID = buffer[2];
+                packet->msgCount = buffer[3];
+                packet->dataType = buffer[4];
+                memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
+
                 char raw_data[100];
-                packet_to_string(packet, raw_data);
+                //packet_to_string(*packet, raw_data);
+                buffer_to_string(buffer, raw_data);
                 loginfo(raw_data); // logging raw received data
 
                 // unpack data
-                float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
-                float received_press = (float)(1000 + (int8_t)packet.data[1]);
-                float received_hum = (float)packet.data[2];
+                float received_temp = ((float)((int8_t)packet->data[0]) / 2.0);
+                float received_press = (float)(1000 + (int8_t)packet->data[1]);
+                float received_hum = (float)packet->data[2];
 
                 // write message
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
 
-                print_buffer((uint8_t*)&packet, return_len);
                 loginfo(msg); // logging unpacked data
 
                 lora_receive_mode();

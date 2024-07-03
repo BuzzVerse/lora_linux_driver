@@ -45,6 +45,16 @@ lora_status_t temp_init(void)
    return ret;
 }
 
+void pack_packet(uint8_t *buffer, packet_t *packet)
+{
+    buffer[PACKET_VERSION_IDX] = packet->version;
+    buffer[PACKET_ID_IDX] = packet->id;
+    buffer[PACKET_MSG_ID_IDX] = packet->msgID;
+    buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
+    buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
+    memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
+}
+
 int main(int argc, char* argv[])
 {
     if(argc != 2) {
@@ -89,14 +99,17 @@ int main(int argc, char* argv[])
 
     // example packet data
     packet_t packet;
-    packet.version = 0x11;
+    packet.version = 0x33;
     packet.id = 0x22;
-    packet.msgID = 0x33;
+    packet.msgID = 0x11;
     packet.msgCount = 0x00;
-    packet.dataType = 1; // BME280
+    packet.dataType = BME280; 
     packet.data[0] = 23;
     packet.data[1] = 1;
     packet.data[2] = 40;
+
+    uint8_t buffer[PACKET_SIZE] = {0};
+    pack_packet(buffer, &packet);
 
     if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
         printf("Failed to set payload length\n");
@@ -105,7 +118,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (lora_send_packet((uint8_t*)&packet, PACKET_SIZE) == LORA_OK) {  // puts LoRa in sleep mode
+    if (lora_send_packet(buffer, sizeof(buffer)) == LORA_OK) {  // puts LoRa in sleep mode
         printf("Packet sent successfully.\n");
         loginfo("Packet sent successfully.\n");
     } else {
