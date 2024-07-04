@@ -6,8 +6,6 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
-#include "lora_registers.h"
-
 #define SPI_SPEED_HZ	500000
 #define SPI_WRITE	0x80
 #define SPI_READ	0x00
