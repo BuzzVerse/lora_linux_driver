@@ -100,6 +100,8 @@ int main(int argc, char* argv[])
     uint8_t irq;
 
     while(1) {
+        received = false;
+        crc_error = false;
         lora_received(&received, &crc_error);
 
         if(received) {
@@ -109,7 +111,6 @@ int main(int argc, char* argv[])
             if(crc_error) {
                 printf("CRC error\n");
                 loginfo("CRC error\n");
-                crc_error = false;
             } else {
                 uint8_t return_len;
                 lora_receive_packet(buffer, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
@@ -140,8 +141,6 @@ int main(int argc, char* argv[])
 
                 lora_receive_mode();
             }
-            
-            received = false;
         }
     }
     
