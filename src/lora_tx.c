@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <string.h>
 
 #include "driver/lora_driver.h"
@@ -10,7 +11,20 @@
 // functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
 extern void spidev_close();
 extern int spidev_open(char* dev);
+extern void print_buffer(uint8_t* buf, uint8_t len);
 extern int loginfo(const char* msg);
+
+void handle_sigint(int sig) {
+    printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
+
+    if(lora_sleep_mode() != LORA_OK) {
+        printf("Failed to set sleep mode.\n");
+    }
+
+    spidev_close();
+
+    exit(0);
+}
 
 lora_status_t temp_init(void)
 {
@@ -73,6 +87,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    // signal handler for CTRL-C
+    signal(SIGINT, handle_sigint);
+
     if(spidev_open(device) == -1) {
         return -1; // exit if fd fails to open
     }
@@ -98,18 +115,21 @@ int main(int argc, char* argv[])
     }
 
     // example packet data
-    packet_t packet;
-    packet.version = 0x33;
-    packet.id = 0x22;
-    packet.msgID = 0x11;
-    packet.msgCount = 0x00;
-    packet.dataType = BME280; 
-    packet.data[0] = 23;
-    packet.data[1] = 1;
-    packet.data[2] = 40;
+    packet_t* packet = NULL;
+    packet = (packet_t*)malloc(sizeof(packet_t));
+    packet->version = 0x33;
+    packet->id = 0x22;
+    packet->msgID = 0x11;
+    packet->msgCount = 0x00;
+    packet->dataType = BMA400; 
+    for(int i = 0; i < DATA_SIZE; i++) {
+        packet->data[i] = (uint8_t)i; // example data: 0x00, 0x01, ..., 0x3A
+    }
 
-    uint8_t buffer[PACKET_SIZE] = {0};
-    pack_packet(buffer, &packet);
+    uint8_t buffer[PACKET_SIZE];
+    pack_packet(buffer, packet);
+    printf("Buffer to be sent:\n");
+    print_buffer(buffer, sizeof(buffer));
 
     if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
         printf("Failed to set payload length\n");
@@ -117,7 +137,7 @@ int main(int argc, char* argv[])
         spidev_close();
         return -1;
     }
-
+    
     if (lora_send_packet(buffer, sizeof(buffer)) == LORA_OK) {  // puts LoRa in sleep mode
         printf("Packet sent successfully.\n");
         loginfo("Packet sent successfully.\n");
@@ -125,7 +145,7 @@ int main(int argc, char* argv[])
         printf("Failed to send packet\n");
         loginfo("Failed to send packet\n");
     }
-
+    
     spidev_close();
 
     return 0;

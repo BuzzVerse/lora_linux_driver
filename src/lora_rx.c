@@ -28,16 +28,16 @@ void handle_sigint(int sig) {
     exit(0);
 }
 
-void packet_to_string(packet_t packet, char* destination) {
-    snprintf(destination, 100,
-            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: [0x%02X, 0x%02X, 0x%02X]\n",
-            packet.version, packet.id, packet.msgID, packet.msgCount, packet.dataType, packet.data[0], packet.data[1], packet.data[2]);
-}
-
 void buffer_to_string(uint8_t* buffer, char* destination) {
-    snprintf(destination, 100,
-            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: [0x%02X, 0x%02X, 0x%02X]\n",
-            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
+    snprintf(destination, 1024,
+            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: ",
+            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+    for(int i = META_DATA_SIZE; i < PACKET_SIZE; i++) {
+        char* minibuff;
+        snprintf(minibuff, 6, "0x%02X ", buffer[i]);
+        strcat(destination, minibuff);
+    }
+    strcat(destination, "\n");
 }
 
 int main(int argc, char* argv[])
@@ -94,6 +94,7 @@ int main(int argc, char* argv[])
 
     uint8_t buffer[PACKET_SIZE];
     packet_t *packet;
+    packet = (packet_t*)malloc(sizeof(packet_t));
     bool received = false;
     bool crc_error = false;
     uint8_t irq;
@@ -111,7 +112,6 @@ int main(int argc, char* argv[])
                 crc_error = false;
             } else {
                 uint8_t return_len;
-                //lora_receive_packet((uint8_t*)&packet, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
                 lora_receive_packet(buffer, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
                 
                 print_buffer(buffer, sizeof(buffer));
@@ -123,8 +123,7 @@ int main(int argc, char* argv[])
                 packet->dataType = buffer[4];
                 memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
 
-                char raw_data[100];
-                //packet_to_string(*packet, raw_data);
+                char raw_data[1024];
                 buffer_to_string(buffer, raw_data);
                 loginfo(raw_data); // logging raw received data
 
@@ -137,7 +136,7 @@ int main(int argc, char* argv[])
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
 
-                loginfo(msg); // logging unpacked data
+                loginfo(strcat(msg, "\n")); // logging unpacked data
 
                 lora_receive_mode();
             }
