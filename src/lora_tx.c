@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "driver/lora_driver.h"
-#include "packet/packet.h"
 
 // functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
 extern void spidev_close();
@@ -59,16 +58,6 @@ lora_status_t temp_init(void)
    return ret;
 }
 
-void pack_packet(uint8_t *buffer, packet_t *packet)
-{
-    buffer[PACKET_VERSION_IDX] = packet->version;
-    buffer[PACKET_ID_IDX] = packet->id;
-    buffer[PACKET_MSG_ID_IDX] = packet->msgID;
-    buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
-    buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
-    memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
-}
-
 int main(int argc, char* argv[])
 {
     if(argc != 2) {
@@ -114,24 +103,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // example packet data
-    packet_t* packet = NULL;
-    packet = (packet_t*)malloc(sizeof(packet_t));
-    packet->version = 0x33;
-    packet->id = 0x22;
-    packet->msgID = 0x11;
-    packet->msgCount = 0x00;
-    packet->dataType = BMA400; 
-    for(int i = 0; i < DATA_SIZE; i++) {
-        packet->data[i] = (uint8_t)i; // example data: 0x00, 0x01, ..., 0x3A
-    }
-
-    uint8_t buffer[PACKET_SIZE];
-    pack_packet(buffer, packet);
+    uint8_t buffer[] = "Buzzverse";
     printf("Buffer to be sent:\n");
     print_buffer(buffer, sizeof(buffer));
 
-    if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
+    if(lora_write_reg(REG_PAYLOAD_LENGTH, sizeof(buffer)) != LORA_OK) {
         printf("Failed to set payload length\n");
         loginfo("Failed to set payload length\n");
         spidev_close();
