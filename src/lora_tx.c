@@ -14,11 +14,17 @@ extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 extern int loginfo(const char* msg);
 
+packet_t* packet = NULL;
+
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode.\n");
+    }
+
+    if(packet != NULL) {
+        free(packet);
     }
 
     spidev_close();
@@ -115,7 +121,6 @@ int main(int argc, char* argv[])
     }
 
     // example packet data
-    packet_t* packet = NULL;
     packet = (packet_t*)malloc(sizeof(packet_t));
     packet->version = 0x33;
     packet->id = 0x22;
@@ -145,6 +150,8 @@ int main(int argc, char* argv[])
         printf("Failed to send packet\n");
         loginfo("Failed to send packet\n");
     }
+
+    free(packet);
     
     spidev_close();
 

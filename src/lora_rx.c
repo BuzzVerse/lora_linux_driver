@@ -16,11 +16,17 @@ extern int spidev_open(char* dev);
 extern void print_buffer(uint8_t* buf, uint8_t len);
 extern int loginfo(const char* msg);
 
+packet_t* packet = NULL;
+
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode.\n");
+    }
+
+    if(packet != NULL) {
+        free(packet);
     }
 
     spidev_close();
@@ -93,7 +99,6 @@ int main(int argc, char* argv[])
     }
 
     uint8_t buffer[PACKET_SIZE];
-    packet_t *packet;
     packet = (packet_t*)malloc(sizeof(packet_t));
     bool received = false;
     bool crc_error = false;
@@ -150,6 +155,8 @@ int main(int argc, char* argv[])
         spidev_close();
         return -1;
     }
+
+    free(packet);
 
     spidev_close();
 
