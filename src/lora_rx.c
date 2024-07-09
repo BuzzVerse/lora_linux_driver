@@ -9,12 +9,7 @@
 
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
-
-// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
-extern void spidev_close();
-extern int spidev_open(char* dev);
-extern void print_buffer(uint8_t* buf, uint8_t len);
-extern int loginfo(const char* msg);
+#include "lora.h"
 
 packet_t* packet = NULL;
 
@@ -32,18 +27,6 @@ void handle_sigint(int sig) {
     spidev_close();
 
     exit(0);
-}
-
-void buffer_to_string(uint8_t* buffer, char* destination) {
-    snprintf(destination, 1024,
-            "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: ",
-            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
-    for(int i = META_DATA_SIZE; i < PACKET_SIZE; i++) {
-        char* minibuff;
-        snprintf(minibuff, 6, "0x%02X ", buffer[i]);
-        strcat(destination, minibuff);
-    }
-    strcat(destination, "\n");
 }
 
 int main(int argc, char* argv[])
@@ -68,6 +51,8 @@ int main(int argc, char* argv[])
     signal(SIGINT, handle_sigint);
 
     if(spidev_open(device) == -1) {
+        printf("Failed to open SPI device\n");
+        loginfo("Failed to open SPI device\n");
         return -1; // exit if fd fails to open
     }
 

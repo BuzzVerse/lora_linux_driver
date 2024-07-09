@@ -7,12 +7,7 @@
 
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
-
-// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
-extern void spidev_close();
-extern int spidev_open(char* dev);
-extern void print_buffer(uint8_t* buf, uint8_t len);
-extern int loginfo(const char* msg);
+#include "lora.h"
 
 packet_t* packet = NULL;
 
@@ -32,51 +27,7 @@ void handle_sigint(int sig) {
     exit(0);
 }
 
-lora_status_t temp_init(void)
-{
-   lora_status_t ret;
-
-   uint8_t version;
-   uint8_t i = 0;
-   while (i++ < TIMEOUT_RESET)
-   {
-      lora_read_reg(REG_VERSION, &version);
-      printf("version=0x%02x\n", version);
-      if (version == 0x12)
-         break;
-      sleep(20);
-   }
-   printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
-
-   if (i == TIMEOUT_RESET + 1)
-      return LORA_FAILED_INIT;
-
-   ret = lora_sleep_mode();
-   ret += lora_write_reg(REG_FIFO_RX_BASE_ADDR, 0);
-   ret += lora_write_reg(REG_FIFO_TX_BASE_ADDR, 0);
-   uint8_t lna_val;
-   lora_read_reg(REG_LNA, &lna_val);
-   ret += lora_write_reg(REG_LNA, lna_val | 0x03);
-   ret += lora_write_reg(REG_MODEM_CONFIG_3, 0x04);
-   ret += lora_set_tx_power(17);
-
-   ret += lora_idle_mode();
-
-   return ret;
-}
-
-void pack_packet(uint8_t *buffer, packet_t *packet)
-{
-    buffer[PACKET_VERSION_IDX] = packet->version;
-    buffer[PACKET_ID_IDX] = packet->id;
-    buffer[PACKET_MSG_ID_IDX] = packet->msgID;
-    buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
-    buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
-    memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
-}
-
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     if(argc != 2) {
         printf("Invalid number of arguments\nUsage: sudo ./lora_rx [SPI device number: 0 | 1]\n");
         return -1;
@@ -97,6 +48,8 @@ int main(int argc, char* argv[])
     signal(SIGINT, handle_sigint);
 
     if(spidev_open(device) == -1) {
+        printf("Failed to open SPI device\n");
+        loginfo("Failed to open SPI device\n");
         return -1; // exit if fd fails to open
     }
 
