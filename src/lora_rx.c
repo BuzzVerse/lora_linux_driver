@@ -7,7 +7,11 @@
 #include <sys/socket.h>
 #include <string.h>
 
+#include "colors.h"
 #include "driver/lora_driver.h"
+#include "api/driver_api.h"
+
+#define MESSAGE_SIZE    10
 
 // functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
 extern void spidev_close();
@@ -30,6 +34,28 @@ void handle_sigint(int sig) {
 void buffer_to_string(uint8_t* buffer, char* destination) {
     snprintf(destination, 128, "0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], buffer[8], buffer[9]);
+}
+
+lora_status_t lora_receive(uint8_t* data) {
+    uint8_t buffer[MESSAGE_SIZE] = {0};
+    uint8_t return_len = 0;
+
+    lora_receive_mode();
+
+    while(1) {
+        bool received = false;
+        bool crc_error = false;
+        lora_received(&received, &crc_error);
+
+        if(received) {
+            lora_receive_packet(buffer, &return_len, sizeof(buffer)); // puts LoRa in idle mode!!!
+            
+            memcpy(data, buffer, MESSAGE_SIZE);
+
+            return crc_error ? LORA_CRC_ERROR : LORA_OK;
+        }
+        lora_delay(20); // 20 ms
+    }
 }
 
 int main(int argc, char* argv[])
@@ -84,36 +110,20 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    uint8_t buffer[10]; // mind the buffer size
-    bool received = false;
-    bool crc_error = false;
-    uint8_t irq;
-
     while(1) {
-        received = false;
-        crc_error = false;
-        lora_received(&received, &crc_error);
+        uint8_t data[MESSAGE_SIZE] = {0};
 
-        if(received) {
-            lora_get_irq(&irq);
+        if(lora_receive(data) == LORA_OK) { // waits for a packet and writes it to a buffer on its arrival
+            char raw_data[64];
+            buffer_to_string(data, raw_data);
 
-            if(crc_error) {
-                printf("CRC error\n");
-                loginfo("CRC error\n");
-            } else {
-                uint8_t return_len;
-                lora_receive_packet(buffer, &return_len, sizeof(buffer)); // puts LoRa in idle mode!!!
-               
-                //print_buffer(buffer, sizeof(buffer));
-                char raw_data[128];
-                buffer_to_string(buffer, raw_data);
-                char message[256];
-                snprintf(message, sizeof(message), "Raw data: %s\nDecoded data: %s\n", raw_data, (char*)buffer);
-                printf("%s", message);
-                loginfo(message);
-
-                lora_receive_mode();
-            }
+            char message[128];
+            snprintf(message, sizeof(message), "Raw data: %s\nDecoded data: %s\n", raw_data, (char*)data);
+            printf("%s", message);
+            loginfo(message);
+        } else {
+            printf("%s[ERROR]%s CRC error \n", C_RED, C_DEFAULT);
+            loginfo("[ERROR] CRC error \n");
         }
     }
     
