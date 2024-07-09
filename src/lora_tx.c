@@ -5,13 +5,9 @@
 #include <signal.h>
 #include <string.h>
 
+#include "colors.h"
 #include "driver/lora_driver.h"
-
-// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
-extern void spidev_close();
-extern int spidev_open(char* dev);
-extern void print_buffer(uint8_t* buf, uint8_t len);
-extern int loginfo(const char* msg);
+#include "lora.h"
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -23,39 +19,6 @@ void handle_sigint(int sig) {
     spidev_close();
 
     exit(0);
-}
-
-lora_status_t temp_init(void)
-{
-   lora_status_t ret;
-
-   uint8_t version;
-   uint8_t i = 0;
-   while (i++ < TIMEOUT_RESET)
-   {
-      lora_read_reg(REG_VERSION, &version);
-      printf("version=0x%02x\n", version);
-      if (version == 0x12)
-         break;
-      sleep(20);
-   }
-   printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
-
-   if (i == TIMEOUT_RESET + 1)
-      return LORA_FAILED_INIT;
-
-   ret = lora_sleep_mode();
-   ret += lora_write_reg(REG_FIFO_RX_BASE_ADDR, 0);
-   ret += lora_write_reg(REG_FIFO_TX_BASE_ADDR, 0);
-   uint8_t lna_val;
-   lora_read_reg(REG_LNA, &lna_val);
-   ret += lora_write_reg(REG_LNA, lna_val | 0x03);
-   ret += lora_write_reg(REG_MODEM_CONFIG_3, 0x04);
-   ret += lora_set_tx_power(17);
-
-   ret += lora_idle_mode();
-
-   return ret;
 }
 
 int main(int argc, char* argv[])
@@ -80,6 +43,8 @@ int main(int argc, char* argv[])
     signal(SIGINT, handle_sigint);
 
     if(spidev_open(device) == -1) {
+        printf("Failed to open SPI device\n");
+        loginfo("Failed to open SPI device\n");
         return -1; // exit if fd fails to open
     }
 

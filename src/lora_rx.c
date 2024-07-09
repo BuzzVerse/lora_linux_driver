@@ -9,15 +9,7 @@
 
 #include "colors.h"
 #include "driver/lora_driver.h"
-#include "api/driver_api.h"
-
-#define MESSAGE_SIZE    10
-
-// functions from bbb_api_impl.c // TODO cleanup and move them elsewhere?
-extern void spidev_close();
-extern int spidev_open(char* dev);
-extern void print_buffer(uint8_t* buf, uint8_t len);
-extern int loginfo(const char* msg);
+#include "lora.h"
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -29,33 +21,6 @@ void handle_sigint(int sig) {
     spidev_close();
 
     exit(0);
-}
-
-void buffer_to_string(uint8_t* buffer, char* destination) {
-    snprintf(destination, 128, "0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
-            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], buffer[8], buffer[9]);
-}
-
-lora_status_t lora_receive(uint8_t* data) {
-    uint8_t buffer[MESSAGE_SIZE] = {0};
-    uint8_t return_len = 0;
-
-    lora_receive_mode();
-
-    while(1) {
-        bool received = false;
-        bool crc_error = false;
-        lora_received(&received, &crc_error);
-
-        if(received) {
-            lora_receive_packet(buffer, &return_len, sizeof(buffer)); // puts LoRa in idle mode!!!
-            
-            memcpy(data, buffer, MESSAGE_SIZE);
-
-            return crc_error ? LORA_CRC_ERROR : LORA_OK;
-        }
-        lora_delay(20); // 20 ms
-    }
 }
 
 int main(int argc, char* argv[])
@@ -80,6 +45,8 @@ int main(int argc, char* argv[])
     signal(SIGINT, handle_sigint);
 
     if(spidev_open(device) == -1) {
+        printf("Failed to open SPI device\n");
+        loginfo("Failed to open SPI device\n");
         return -1; // exit if fd fails to open
     }
 
