@@ -10,6 +10,7 @@
 #include "lora.h"
 
 packet_t* packet = NULL;
+uint8_t* buffer = NULL;
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -20,6 +21,10 @@ void handle_sigint(int sig) {
 
     if(packet != NULL) {
         free(packet);
+    }
+
+    if(buffer != NULL) {
+        free(buffer);
     }
 
     spidev_close();
@@ -79,15 +84,16 @@ int main(int argc, char* argv[]) {
     packet->id = 0x22;
     packet->msgID = 0x11;
     packet->msgCount = 0x00;
-    packet->dataType = BMA400; 
-    for(int i = 0; i < DATA_SIZE; i++) {
-        packet->data[i] = (uint8_t)i; // example data: 0x00, 0x01, ..., 0x3A
-    }
-
-    uint8_t buffer[PACKET_SIZE];
-    pack_packet(buffer, packet);
+    packet->dataType = BME280; 
+    packet->data[0] = 23;
+    packet->data[1] = 4;
+    packet->data[2] = 56;
+    
+    size_t payload_size = (META_DATA_SIZE + get_data_size(packet->dataType));
+    buffer = malloc(payload_size * sizeof(uint8_t));
+    pack_packet(buffer, packet, payload_size);
     printf("Buffer to be sent:\n");
-    print_buffer(buffer, sizeof(buffer));
+    print_buffer(buffer, payload_size);
 
     if(lora_write_reg(REG_PAYLOAD_LENGTH, PACKET_SIZE) != LORA_OK) {
         printf("Failed to set payload length\n");
@@ -95,8 +101,8 @@ int main(int argc, char* argv[]) {
         spidev_close();
         return -1;
     }
-    
-    if (lora_send_packet(buffer, sizeof(buffer)) == LORA_OK) {  // puts LoRa in sleep mode
+
+    if (lora_send_packet(buffer, payload_size) == LORA_OK) {  // puts LoRa in sleep mode
         printf("Packet sent successfully.\n");
         loginfo("Packet sent successfully.\n");
     } else {
@@ -105,6 +111,7 @@ int main(int argc, char* argv[]) {
     }
 
     free(packet);
+    free(buffer);
     
     spidev_close();
 

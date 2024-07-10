@@ -12,7 +12,6 @@
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 
-#define MESSAGE_SIZE    10
 #define LOGFILE         "/var/log/lora.log"
 
 static int fd;
@@ -23,7 +22,7 @@ void spidev_close();
 
 void print_buffer(uint8_t* buf, uint8_t len);
 
-void buffer_to_string(uint8_t* buffer, char* destination);
+void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination);
 
 int loginfo(const char* msg);
 
@@ -31,4 +30,6 @@ lora_status_t lora_receive(packet_t* packet);
 
 lora_status_t temp_init(void);
 
-void pack_packet(uint8_t *buffer, packet_t *packet);
+void pack_packet(uint8_t *buffer, packet_t *packet, size_t data_size);
+
+size_t get_data_size(DataType type);

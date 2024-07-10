@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    uint8_t buffer[PACKET_SIZE];
+    uint8_t buffer[PACKET_SIZE]; // buffer is always the maximum packet size
     packet = (packet_t*)malloc(sizeof(packet_t));
     bool received = false;
     bool crc_error = false;
@@ -95,7 +95,6 @@ int main(int argc, char* argv[])
         lora_received(&received, &crc_error);
 
         if(received) {
-            lora_get_irq(&irq);
             char msg[100];
 
             if(crc_error) {
@@ -104,18 +103,19 @@ int main(int argc, char* argv[])
             } else {
                 uint8_t return_len;
                 lora_receive_packet(buffer, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
-                
-                print_buffer(buffer, sizeof(buffer));
                
                 packet->version = buffer[0];
                 packet->id = buffer[1];
                 packet->msgID = buffer[2];
                 packet->msgCount = buffer[3];
                 packet->dataType = buffer[4];
-                memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
+                memcpy(packet->data, &buffer[META_DATA_SIZE], get_data_size(packet->dataType));
+
+                size_t payload_size = META_DATA_SIZE + get_data_size(packet->dataType);
+                print_buffer(buffer, payload_size); // print only the received part of the buffer
 
                 char raw_data[1024];
-                buffer_to_string(buffer, raw_data);
+                buffer_to_string(buffer, payload_size, raw_data);
                 loginfo(raw_data); // logging raw received data
 
                 // unpack data
@@ -127,6 +127,7 @@ int main(int argc, char* argv[])
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
 
+                printf("%s\n", msg);
                 loginfo(strcat(msg, "\n")); // logging unpacked data
 
                 lora_receive_mode();

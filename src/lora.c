@@ -7,11 +7,11 @@ void print_buffer(uint8_t* buf, uint8_t len) {
     printf("\n");
 }
 
-void buffer_to_string(uint8_t* buffer, char* destination) {
+void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination) {
     snprintf(destination, 1024,
             "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: ",
             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
-    for(int i = META_DATA_SIZE; i < PACKET_SIZE; i++) {
+    for(size_t i = META_DATA_SIZE; i < buffer_size; i++) {
         char* minibuff;
         snprintf(minibuff, 6, "0x%02X ", buffer[i]);
         strcat(destination, minibuff);
@@ -39,7 +39,7 @@ int loginfo(const char* msg) {
 }
 
 lora_status_t lora_receive(packet_t* packet) {
-    uint8_t buffer[MESSAGE_SIZE] = {0};
+    uint8_t buffer[PACKET_SIZE] = {0};
     uint8_t return_len = 0;
     uint8_t rssi = 0;
     uint8_t snr = 0;
@@ -104,11 +104,28 @@ lora_status_t temp_init(void) {
    return ret;
 }
 
-void pack_packet(uint8_t *buffer, packet_t *packet) {
+void pack_packet(uint8_t *buffer, packet_t *packet, size_t data_size) {
     buffer[PACKET_VERSION_IDX] = packet->version;
     buffer[PACKET_ID_IDX] = packet->id;
     buffer[PACKET_MSG_ID_IDX] = packet->msgID;
     buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
     buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
-    memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
+    memcpy(&buffer[META_DATA_SIZE], packet->data, data_size);
+}
+
+size_t get_data_size(DataType type) {
+    switch (type) {
+    case BME280:
+        return 3; // 1B temp, 1B hum, 1B pres
+    case BMA400:
+        return 24; // 8B x-axis, 8B y-axis, 8B z-axis
+    case MQ2:
+        return 17; // 1B gas type, 16B value
+    case GPS:
+        return 16; // 8B longitude, 8B latitude
+    case SMS:
+        return 59; // Max 59B String
+    default:
+        return 0; // Unsupported type
+    }
 }
