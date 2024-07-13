@@ -67,7 +67,7 @@ lora_status_t lora_receive(packet_t* packet) {
             memcpy(packet->data, &buffer[META_DATA_SIZE], payload_size); // only pack the useful data
 
             char raw_data[256];
-            buffer_to_string(buffer, payload_size, raw_data, sizeof(raw_data));
+            buffer_to_string(buffer, sizeof(buffer), raw_data, sizeof(raw_data));
             char message[512];
             snprintf(message, sizeof(message), "[RAW DATA]: %s\n", raw_data);
             printf("%s", message);
