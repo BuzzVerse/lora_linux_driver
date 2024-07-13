@@ -137,30 +137,13 @@ int main(int argc, char* argv[])
     }
 
     free(packet);
-    */ 
+    */
+
     while(1) {
         packet_t packet = {0};
-       
-        /*
-        if(lora_receive(&packet) == LORA_OK) {
-            // unpack data
-            float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
-            float received_press = (float)(1000 + (int8_t)packet.data[1]);
-            float received_hum = (float)packet.data[2];
-
-            char msg[64]; //TODO smaller size?
-            // write message
-            sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                    received_temp, received_press, received_hum);
-
-            printf("%s\n", msg);
-            loginfo(strcat(msg, "\n"));
-        } else {
-            printf("%s[ERROR]%s CRC error\n", C_RED, C_DEFAULT);
-            loginfo("[ERROR] CRC error\n");
-        } */
         
         lora_status_t status = lora_receive(&packet);
+
         // unpack data
         float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
         float received_press = (float)(1000 + (int8_t)packet.data[1]);
