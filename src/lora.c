@@ -16,7 +16,6 @@ void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination) {
         snprintf(minibuff, 6, "0x%02X ", buffer[i]);
         strcat(destination, minibuff);
     }
-    strcat(destination, "\n");
 }
 
 int loginfo(const char* msg) {
@@ -39,7 +38,7 @@ int loginfo(const char* msg) {
 }
 
 lora_status_t lora_receive(packet_t* packet) {
-    uint8_t buffer[PACKET_SIZE] = {0};
+    uint8_t buffer[PACKET_SIZE]; // buffer always of the maximum packet size //TODO does this buffer need to be zeroed every time?
     uint8_t return_len = 0;
     uint8_t rssi = 0;
     uint8_t snr = 0;
@@ -54,16 +53,25 @@ lora_status_t lora_receive(packet_t* packet) {
         if(received) {
             lora_receive_packet(buffer, &return_len, sizeof(buffer)); // puts LoRa in idle mode!!!
 
+            // TODO print/log this?
             lora_packet_rssi(&rssi);
             lora_packet_snr(&snr);
-    
+
             packet->version = buffer[0];
             packet->id = buffer[1];
             packet->msgID = buffer[2];
             packet->msgCount = buffer[3];
             packet->dataType = buffer[4];
 
-            memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
+            size_t payload_size = META_DATA_SIZE + get_data_size(packet->dataType);
+            memcpy(packet->data, &buffer[META_DATA_SIZE], payload_size); // only pack the useful data
+
+            char raw_data[256];
+            buffer_to_string(buffer, payload_size, raw_data);
+            char message[512];
+            snprintf(message, sizeof(message), "[RAW DATA]: %s\n", raw_data);
+            printf("%s", message);
+            loginfo(message);
 
             return crc_error ? LORA_CRC_ERROR : LORA_OK;
         }

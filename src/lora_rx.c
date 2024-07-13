@@ -11,7 +11,7 @@
 #include "packet/packet.h"
 #include "lora.h"
 
-packet_t* packet = NULL;
+//packet_t* packet = NULL;
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -19,11 +19,11 @@ void handle_sigint(int sig) {
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode.\n");
     }
-
+/*
     if(packet != NULL) {
         free(packet);
     }
-
+*/
     spidev_close();
 
     exit(0);
@@ -83,6 +83,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    /*
     uint8_t buffer[PACKET_SIZE]; // buffer is always the maximum packet size
     packet = (packet_t*)malloc(sizeof(packet_t));
     bool received = false;
@@ -134,6 +135,50 @@ int main(int argc, char* argv[])
             }
         }
     }
+
+    free(packet);
+    */ 
+    while(1) {
+        packet_t packet = {0};
+       
+        /*
+        if(lora_receive(&packet) == LORA_OK) {
+            // unpack data
+            float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
+            float received_press = (float)(1000 + (int8_t)packet.data[1]);
+            float received_hum = (float)packet.data[2];
+
+            char msg[64]; //TODO smaller size?
+            // write message
+            sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+                    received_temp, received_press, received_hum);
+
+            printf("%s\n", msg);
+            loginfo(strcat(msg, "\n"));
+        } else {
+            printf("%s[ERROR]%s CRC error\n", C_RED, C_DEFAULT);
+            loginfo("[ERROR] CRC error\n");
+        } */
+        
+        lora_status_t status = lora_receive(&packet);
+        // unpack data
+        float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
+        float received_press = (float)(1000 + (int8_t)packet.data[1]);
+        float received_hum = (float)packet.data[2];
+
+        char msg[64];
+        // write message
+        sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+                received_temp, received_press, received_hum);
+
+        if(status == LORA_OK) {
+            printf("%s\n", msg);
+            loginfo(strcat(msg, "\n"));
+        } else {
+            printf("%s[ERROR]%s CRC error: %s\n", C_RED, C_DEFAULT, msg);
+            loginfo("[ERROR] CRC error: %s\n");
+        }
+    }
     
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode\n");
@@ -141,8 +186,6 @@ int main(int argc, char* argv[])
         spidev_close();
         return -1;
     }
-
-    free(packet);
 
     spidev_close();
 
