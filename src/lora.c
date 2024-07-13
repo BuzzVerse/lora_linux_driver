@@ -12,8 +12,8 @@ void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination, si
             "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: ",
             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
     for(size_t i = META_DATA_SIZE; i < buffer_size; i++) {
-        char* minibuff;
-        snprintf(minibuff, 6, "0x%02X ", buffer[i]);
+        char minibuff[6];
+        snprintf(minibuff, sizeof(minibuff), "0x%02X ", buffer[i]);
         strcat(destination, minibuff);
     }
 }
@@ -50,7 +50,7 @@ lora_status_t lora_receive(packet_t* packet) {
         lora_received(&received, &crc_error);
 
         if(received) {
-            uint8_t buffer[PACKET_SIZE] = {0}; // buffer always of the maximum packet size //TODO does this buffer need to be zeroed every time?
+            uint8_t buffer[PACKET_SIZE]; // buffer always of the maximum packet size //TODO does this buffer need to be zeroed every time?
             lora_receive_packet(buffer, &return_len, sizeof(buffer)); // puts LoRa in idle mode!!!
 
             // TODO print/log this?
