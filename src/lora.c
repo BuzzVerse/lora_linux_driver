@@ -7,8 +7,8 @@ void print_buffer(uint8_t* buf, uint8_t len) {
     printf("\n");
 }
 
-void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination) {
-    snprintf(destination, 1024,
+void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination, size_t destination_size) {
+    snprintf(destination, destination_size,
             "version: 0x%02X, id: 0x%02X, msgID: 0x%02X, msgCount: 0x%02X, dataType: 0x%02X, data: ",
             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
     for(size_t i = META_DATA_SIZE; i < buffer_size; i++) {
@@ -67,7 +67,7 @@ lora_status_t lora_receive(packet_t* packet) {
             memcpy(packet->data, &buffer[META_DATA_SIZE], payload_size); // only pack the useful data
 
             char raw_data[256];
-            buffer_to_string(buffer, payload_size, raw_data);
+            buffer_to_string(buffer, payload_size, raw_data, sizeof(raw_data));
             char message[512];
             snprintf(message, sizeof(message), "[RAW DATA]: %s\n", raw_data);
             printf("%s", message);

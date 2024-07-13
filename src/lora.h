@@ -22,7 +22,7 @@ void spidev_close();
 
 void print_buffer(uint8_t* buf, uint8_t len);
 
-void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination);
+void buffer_to_string(uint8_t* buffer, size_t buffer_size, char* destination, size_t destination_size);
 
 int loginfo(const char* msg);
 
