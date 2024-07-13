@@ -151,8 +151,7 @@ int main(int argc, char* argv[])
 
         char msg[64];
         // write message
-        sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                received_temp, received_press, received_hum);
+        snprintf(msg, sizeof(msg), "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}", received_temp, received_press, received_hum);
 
         if(status == LORA_OK) {
             printf("%s\n", msg);
