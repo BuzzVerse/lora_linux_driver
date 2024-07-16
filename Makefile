@@ -1,5 +1,5 @@
 CC = arm-linux-gnueabihf-gcc
-CFLAGS = -static -Iinclude/ -Iprotocols/
+CFLAGS = -static -Iinclude/ -Iprotocols/ -Isrc/
 
 all: lora_rx lora_tx 
 

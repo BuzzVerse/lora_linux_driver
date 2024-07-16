@@ -66,13 +66,6 @@ lora_status_t lora_receive(packet_t* packet) {
             size_t payload_size = META_DATA_SIZE + get_data_size(packet->dataType);
             memcpy(packet->data, &buffer[META_DATA_SIZE], payload_size); // only pack the useful data
 
-            char raw_data[512];
-            buffer_to_string(buffer, payload_size, raw_data, sizeof(raw_data));
-            char message[512];
-            snprintf(message, sizeof(message), "[RAW DATA]: %s\n", raw_data);
-            printf("%s", message);
-            loginfo(message);
-
             return crc_error ? LORA_CRC_ERROR : LORA_OK;
         }
         lora_delay(20); // 20 ms

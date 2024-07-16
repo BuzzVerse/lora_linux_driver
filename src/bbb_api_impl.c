@@ -106,7 +106,7 @@ api_status_t spi_read(uint8_t reg, uint8_t* val) {
 }
 
 // TODO not sure if it works??
-api_status_t spi_read_buf(uint8_t reg, uint8_t* buf, uint16_t len) {
+api_status_t spi_read_buf(uint8_t reg, uint8_t* buf, uint8_t len) {
     for(uint16_t i = 0; i < len; i++) {
         if(spi_read(reg, buf) == API_SPI_ERROR) {
             return API_SPI_ERROR;
@@ -136,7 +136,7 @@ api_status_t spi_write(uint8_t reg, uint8_t val) {
     return API_OK;
 }
 
-api_status_t spi_write_buf(uint8_t reg, uint8_t* buf, uint16_t len) {
+api_status_t spi_write_buf(uint8_t reg, uint8_t* buf, uint8_t len) {
     for(uint16_t i = 0; i < len; i++) {
         if(spi_write(reg, *buf) == API_SPI_ERROR) {
             return API_SPI_ERROR;
@@ -150,14 +150,14 @@ void lora_delay(uint32_t ticks) {
     sleep(ticks);    
 }
 
-void lora_reset(void) {
+api_status_t lora_reset(void) {
     FILE *fptr66, *fptr69;
     fptr66 = fopen("/sys/class/gpio/gpio66/value", "w");
     fptr69 = fopen("/sys/class/gpio/gpio69/value", "w");
 
     if ((fptr66 == NULL) || (fptr69 == NULL)) {
         printf("%s[Error]%s Reading GPIO failed.\n", C_RED, C_DEFAULT);
-        return; 
+        return API_FAILED_SPI_SET_PIN; 
     }
 
     fseek(fptr66, 0, SEEK_SET);
@@ -173,4 +173,5 @@ void lora_reset(void) {
         sleep(1);
     }
     printf("%s[RESET]%s Ok\n", C_GREEN, C_DEFAULT);
+    return API_OK;
 }
