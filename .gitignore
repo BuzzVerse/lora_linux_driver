@@ -55,4 +55,4 @@ dkms.conf
 .cache/
 
 build/
-!build/compile_commands.json
+compile_commands.json
