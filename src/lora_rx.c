@@ -10,6 +10,7 @@
 #include "driver/lora_driver.h"
 #include "packet/packet.h"
 #include "lora.h"
+#include "mqtt_config.h"
 
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
@@ -77,6 +78,13 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    mqtt_config mqtt_conf;
+    if (parse_config(MQTT_CONFIG_FILE, &mqtt_conf) != 0) {
+        fprintf(stderr, "Failed to load mqtt config\n");
+        loginfo("Failed to load mqtt config\n");
+        return -1;
+    }
+
     while(1) {
         packet_t packet = {0};
         
@@ -93,6 +101,7 @@ int main(int argc, char* argv[])
 
         if(status == LORA_OK) {
             printf("%s\n", msg);
+            mqtt_publish(msg, &mqtt_conf);
             loginfo(strcat(msg, "\n"));
         } else {
             printf("%s[ERROR]%s CRC error: %s\n", C_RED, C_DEFAULT, msg);
