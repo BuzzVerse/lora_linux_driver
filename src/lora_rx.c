@@ -11,19 +11,13 @@
 #include "packet/packet.h"
 #include "lora.h"
 
-//packet_t* packet = NULL;
-
 void handle_sigint(int sig) {
     printf("Caught signal %d (SIGINT), cleaning up...\n", sig);
 
     if(lora_sleep_mode() != LORA_OK) {
         printf("Failed to set sleep mode.\n");
     }
-/*
-    if(packet != NULL) {
-        free(packet);
-    }
-*/
+
     spidev_close();
 
     exit(0);
@@ -82,62 +76,6 @@ int main(int argc, char* argv[])
         spidev_close();
         return -1;
     }
-
-    /*
-    uint8_t buffer[PACKET_SIZE]; // buffer is always the maximum packet size
-    packet = (packet_t*)malloc(sizeof(packet_t));
-    bool received = false;
-    bool crc_error = false;
-    uint8_t irq;
-
-    while(1) {
-        received = false;
-        crc_error = false;
-        lora_received(&received, &crc_error);
-
-        if(received) {
-            char msg[100];
-
-            if(crc_error) {
-                printf("CRC error\n");
-                loginfo("CRC error\n");
-            } else {
-                uint8_t return_len;
-                lora_receive_packet(buffer, &return_len, PACKET_SIZE); // puts LoRa in idle mode!!!
-               
-                packet->version = buffer[0];
-                packet->id = buffer[1];
-                packet->msgID = buffer[2];
-                packet->msgCount = buffer[3];
-                packet->dataType = buffer[4];
-                memcpy(packet->data, &buffer[META_DATA_SIZE], get_data_size(packet->dataType));
-
-                size_t payload_size = META_DATA_SIZE + get_data_size(packet->dataType);
-                print_buffer(buffer, payload_size); // print only the received part of the buffer
-
-                char raw_data[1024];
-                buffer_to_string(buffer, payload_size, raw_data);
-                loginfo(raw_data); // logging raw received data
-
-                // unpack data
-                float received_temp = ((float)((int8_t)packet->data[0]) / 2.0);
-                float received_press = (float)(1000 + (int8_t)packet->data[1]);
-                float received_hum = (float)packet->data[2];
-
-                // write message
-                sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                        received_temp, received_press, received_hum);
-
-                printf("%s\n", msg);
-                loginfo(strcat(msg, "\n")); // logging unpacked data
-
-                lora_receive_mode();
-            }
-        }
-    }
-
-    free(packet);
-    */
 
     while(1) {
         packet_t packet = {0};
