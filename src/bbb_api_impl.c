@@ -31,8 +31,7 @@ void spidev_close() {
 }
 
 api_status_t spi_init(void) {
-    // Enable SPI
-
+    // Enable SPI:
     // For SPI0, /dev/spidev0.#
     // default pinout config
     system("config-pin p9_17 spi_cs");      // NSS
@@ -73,12 +72,6 @@ api_status_t spi_init(void) {
     fclose(gpio69d);
     fclose(gpio69v);
     
-
-    // echo out > $gpio66_direction
-    // echo 1 > $gpio66_value
-    // echo out > $gpio69_direction
-    // echo 1 > $gpio69_value
-
     printf("%s[LORA]%s Init\n", C_GREEN, C_DEFAULT);
 
     return API_OK;
@@ -107,11 +100,10 @@ api_status_t spi_read(uint8_t reg, uint8_t* val) {
 
 // TODO not sure if it works??
 api_status_t spi_read_buf(uint8_t reg, uint8_t* buf, uint8_t len) {
-    for(uint16_t i = 0; i < len; i++) {
-        if(spi_read(reg, buf) == API_SPI_ERROR) {
+    for(uint8_t i = 0; i < len; i++) {
+        if(spi_read(reg, (buf + i)) == API_SPI_ERROR) {
             return API_SPI_ERROR;
         }
-        buf++;
     }
 
     return API_OK;
@@ -137,11 +129,10 @@ api_status_t spi_write(uint8_t reg, uint8_t val) {
 }
 
 api_status_t spi_write_buf(uint8_t reg, uint8_t* buf, uint8_t len) {
-    for(uint16_t i = 0; i < len; i++) {
-        if(spi_write(reg, *buf) == API_SPI_ERROR) {
+    for(uint8_t i = 0; i < len; i++) {
+        if(spi_write(reg, *(buf + i)) == API_SPI_ERROR) {
             return API_SPI_ERROR;
         }
-        buf++;
     }
     return API_OK;
 }
