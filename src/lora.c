@@ -72,48 +72,6 @@ lora_status_t lora_receive(packet_t* packet) {
     }
 }
 
-// temporary driver init function without hardware init
-lora_status_t temp_init(void) {
-   lora_status_t ret;
-
-   uint8_t version;
-   uint8_t i = 0;
-   while (i++ < TIMEOUT_RESET)
-   {
-      lora_read_reg(REG_VERSION, &version);
-      printf("version=0x%02x\n", version);
-      if (version == 0x12)
-         break;
-      sleep(20);
-   }
-   printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
-
-   if (i == TIMEOUT_RESET + 1)
-      return LORA_FAILED_INIT;
-
-   ret = lora_sleep_mode();
-   ret += lora_write_reg(REG_FIFO_RX_BASE_ADDR, 0);
-   ret += lora_write_reg(REG_FIFO_TX_BASE_ADDR, 0);
-   uint8_t lna_val;
-   lora_read_reg(REG_LNA, &lna_val);
-   ret += lora_write_reg(REG_LNA, lna_val | 0x03);
-   ret += lora_write_reg(REG_MODEM_CONFIG_3, 0x04);
-   ret += lora_set_tx_power(17);
-
-   ret += lora_idle_mode();
-
-   return ret;
-}
-
-void pack_packet(uint8_t *buffer, packet_t *packet, size_t data_size) {
-    buffer[PACKET_VERSION_IDX] = packet->version;
-    buffer[PACKET_ID_IDX] = packet->id;
-    buffer[PACKET_MSG_ID_IDX] = packet->msgID;
-    buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
-    buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
-    memcpy(&buffer[META_DATA_SIZE], packet->data, data_size);
-}
-
 size_t get_data_size(DataType type) {
     switch (type) {
     case BME280:
