@@ -1,3 +1,4 @@
+# CC = gcc
 CC = arm-linux-gnueabihf-gcc
 CFLAGS = -static -Iinclude/ -Iprotocols/ -Isrc/
 
@@ -15,11 +16,14 @@ bbb_api_impl.o: ./src/bbb_api_impl.c
 lora.o: ./src/lora.c
 	$(CC) $(CFLAGS) ./src/lora.c -o ./build/lora.o -c
 
+mqtt_config.o: ./src/mqtt_config.c
+	$(CC) $(CFLAGS) ./src/mqtt_config.c -o ./build/mqtt_config.o -c
+
 lora_driver.o: ./include/driver/lora_driver.c 
 	$(CC) $(CFLAGS) ./include/driver/lora_driver.c -o ./build/lora_driver.o -c
 
-lora_rx: lora_rx.o lora_driver.o bbb_api_impl.o lora.o
-	$(CC) $(CFLAGS) -o ./build/lora_rx ./build/lora_rx.o ./build/lora_driver.o ./build/bbb_api_impl.o ./build/lora.o
+lora_rx: lora_rx.o lora_driver.o bbb_api_impl.o lora.o mqtt_config.o
+	$(CC) $(CFLAGS) -o ./build/lora_rx ./build/lora_rx.o ./build/lora_driver.o ./build/bbb_api_impl.o ./build/lora.o ./build/mqtt_config.o
 
 lora_tx: lora_tx.o lora_driver.o bbb_api_impl.o lora.o
 	$(CC) $(CFLAGS) -o ./build/lora_tx ./build/lora_tx.o ./build/lora_driver.o ./build/bbb_api_impl.o ./build/lora.o
