@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
         // write message
         snprintf(msg, sizeof(msg), "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}", received_temp, received_press, received_hum);
 
-        if(status == LORA_OK) {
+        if(status == LORA_OK) { // if no CRC error occurs, send data through MQTT
             printf("%s\n", msg);
             mqtt_publish(msg, &mqtt_conf);
             loginfo(strcat(msg, "\n"));
         } else {
-            printf("%s[ERROR]%s CRC error: %s\n", C_RED, C_DEFAULT, msg);
-            loginfo("[ERROR] CRC error: %s\n");
+            printf("%s %s[CRC ERROR]%s\n", msg, C_RED, C_DEFAULT);
+            loginfo(strcat(msg, " [CRC ERROR]\n"));
         }
     }
     
