@@ -1,5 +1,6 @@
 # Setup
-1. Connect the LoRa module to the correct pins on BeagleBone Black
+1. Install arm gcc with ```sudo apt-get install gcc-arm-linux-gnueabihf```
+2. Connect the LoRa module to the correct pins on BeagleBone Black
 1. Compile the source code by running "make" in the project directory
 1. Transfer the compiled files (lora_rx & lora_tx) to BeagleBone by running send_to_bbb.sh
 1. Initiate the driver:
