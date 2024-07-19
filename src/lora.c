@@ -1,5 +1,53 @@
 #include "lora.h"
 
+// stuff for mocking functions for unit tests
+#ifdef MOCK
+#include "colors.h"
+#include <stdlib.h>
+lora_status_t mock_lora_receive_mode(void) {
+    // printf("%s[MOCK]%s lora_receive_mode\n", C_PURPLE, C_DEFAULT);
+    return LORA_OK;
+}
+
+lora_status_t mock_lora_received(bool *received, bool *crc_error) {
+    // printf("%s[MOCK]%s lora_received\n", C_PURPLE, C_DEFAULT);
+    *received = true;
+    *crc_error = false;
+    return LORA_OK;
+}
+
+lora_status_t mock_lora_receive_packet(uint8_t *buf, uint8_t *return_len, uint8_t size) {
+    // printf("%s[MOCK]%s lora_receive_packet\n", C_PURPLE, C_DEFAULT); 
+    buf[0] = 0x33; 
+    buf[1] = 0x22;
+    buf[2] = 0x11;
+    buf[3] = 0x00;
+    buf[4] = 0x01;
+    buf[5] = 0x17;
+    buf[6] = 0x04;
+    buf[7] = 0x38;
+    *return_len = size;
+    return LORA_OK;
+}
+
+lora_status_t mock_lora_packet_rssi(uint8_t *rssi) {
+    // printf("%s[MOCK]%s lora_packet_rssi\n", C_PURPLE, C_DEFAULT);
+    *rssi = 164;
+    return LORA_OK;
+}
+
+lora_status_t mock_lora_packet_snr(uint8_t *snr) {
+    // printf("%s[MOCK]%s lora_packet_snr\n", C_PURPLE, C_DEFAULT);
+    *snr = 7;
+    return LORA_OK;
+}
+#define lora_receive_mode mock_lora_receive_mode
+#define lora_received mock_lora_received
+#define lora_receive_packet mock_lora_receive_packet
+#define lora_packet_rssi mock_lora_packet_rssi
+#define lora_packet_snr mock_lora_packet_snr
+#endif
+
 void print_buffer(uint8_t* buf, uint8_t len) {
     for(uint8_t i = 0x00; i < len; i++) {
         printf("0x%02X ", *(buf + i));

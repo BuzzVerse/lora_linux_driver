@@ -27,3 +27,8 @@ lora_rx: lora_rx.o lora_driver.o bbb_api_impl.o lora.o mqtt_config.o
 
 lora_tx: lora_tx.o lora_driver.o bbb_api_impl.o lora.o
 	$(CC) $(CFLAGS) -o ./build/lora_tx ./build/lora_tx.o ./build/lora_driver.o ./build/bbb_api_impl.o ./build/lora.o
+
+tests: lora_tests
+
+lora_tests: ./test/lora_tests.c ./src/lora.c ./test/unity.c
+	gcc $(CFLAGS) -DMOCK ./test/lora_tests.c ./test/unity.c ./src/lora.c ./src/bbb_api_impl.c -o ./test/lora_tests

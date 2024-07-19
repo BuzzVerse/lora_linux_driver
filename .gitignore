@@ -57,3 +57,6 @@ dkms.conf
 build/*
 !build/
 compile_commands.json
+
+test/lora_tests
+!test/
