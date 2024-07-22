@@ -18,9 +18,9 @@ $ sudo apt install mosquitto mosquitto-clients libmosquitto-dev
 1. Config file should look like this:
 ```
 ip=192.168.0.69
-port=12345
 login=buzzverse
 password=verysecurepassword
-topic=
+topic=topic/something
 ```
-
+## Known issues
+If your mqtt password contains non-ascii symbols try to copy and paste it instead typing it.
