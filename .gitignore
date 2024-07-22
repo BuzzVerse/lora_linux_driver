@@ -58,5 +58,8 @@ build/*
 !build/
 compile_commands.json
 
-test/lora_tests
+test/*
+!test/*.c
+!test/*.h
 !test/
+

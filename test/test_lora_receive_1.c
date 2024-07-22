@@ -2,7 +2,6 @@
 #include "packet/packet.h"
 #include <assert.h>
 #include "unity.h"
-#include "unity_internals.h"
 #include <stdlib.h>
 
 void setUp(void) {
@@ -58,7 +57,7 @@ void test_lora_receive(void) {
 }
 
 int main(void) {
-    UNITY_BEGIN();
+    UNITY_BEGIN();  
     RUN_TEST(test_lora_receive);
     return UNITY_END();
     // test_lora_receive();

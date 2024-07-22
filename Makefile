@@ -31,7 +31,18 @@ lora_rx: lora_rx.o lora_driver.o bbb_api_impl.o lora.o mqtt_config.o
 lora_tx: lora_tx.o lora_driver.o bbb_api_impl.o lora.o
 	$(CC) $(CFLAGS) -o ./build/lora_tx ./build/lora_tx.o ./build/lora_driver.o ./build/bbb_api_impl.o ./build/lora.o
 
-tests: lora_tests
+# tests
+tests: test_lora_receive_1 test_lora_receive_2 test_lora_receive_3  
 
-lora_tests: ./test/lora_tests.c ./src/lora.c ./test/unity.c
-	gcc $(CFLAGS) -DMOCK ./test/lora_tests.c ./test/unity.c ./src/lora.c ./src/bbb_api_impl.c -o ./test/lora_tests
+test_lora_receive_1: ./test/test_lora_receive_1.c ./src/lora.c ./test/unity.c
+	@gcc $(CFLAGS) -DMOCK -DLORA_RECECIVED_TF -DLORA_RECEIVE_PACKET_BME ./test/test_lora_receive_1.c ./test/unity.c ./src/lora.c ./src/bbb_api_impl.c -o ./test/test_lora_receive_1
+	@./test/test_lora_receive_1
+
+test_lora_receive_2: ./test/test_lora_receive_2.c ./src/lora.c ./test/unity.c
+	@gcc $(CFLAGS) -DMOCK -DLORA_RECECIVED_TT -DLORA_RECEIVE_PACKET_BME ./test/test_lora_receive_2.c ./test/unity.c ./src/lora.c ./src/bbb_api_impl.c -o ./test/test_lora_receive_2
+	@./test/test_lora_receive_2
+
+test_lora_receive_3: ./test/test_lora_receive_3.c ./src/lora.c ./test/unity.c
+	@gcc $(CFLAGS) -DMOCK -DLORA_RECECIVED_TF -DLORA_RECEIVE_PACKET_BMA ./test/test_lora_receive_3.c ./test/unity.c ./src/lora.c ./src/bbb_api_impl.c -o ./test/test_lora_receive_3
+	@./test/test_lora_receive_3
+
