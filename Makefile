@@ -2,7 +2,10 @@
 CC = arm-linux-gnueabihf-gcc
 CFLAGS = -static -Iinclude/ -Iprotocols/ -Isrc/
 
-all: lora_rx lora_tx 
+all: make_build lora_rx lora_tx 
+
+make_build:
+	mkdir -p ./build/
 
 lora_rx.o: ./src/lora_rx.c
 	$(CC) $(CFLAGS) ./src/lora_rx.c -o ./build/lora_rx.o -c
