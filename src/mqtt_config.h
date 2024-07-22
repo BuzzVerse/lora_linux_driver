@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 
-#define MQTT_CONFIG_FILE "/etc/mqtt_config.txt"
+#define MQTT_CONFIG_FILE "/etc/mqtt_config"
 
 typedef struct {
     char ip[32];
