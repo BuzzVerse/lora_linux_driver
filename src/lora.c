@@ -5,19 +5,29 @@
 #include "colors.h"
 #include <stdlib.h>
 lora_status_t mock_lora_receive_mode(void) {
-    // printf("%s[MOCK]%s lora_receive_mode\n", C_PURPLE, C_DEFAULT);
     return LORA_OK;
 }
 
-lora_status_t mock_lora_received(bool *received, bool *crc_error) {
-    // printf("%s[MOCK]%s lora_received\n", C_PURPLE, C_DEFAULT);
+#ifdef LORA_RECECIVED_TF
+lora_status_t mock_lora_received1(bool *received, bool *crc_error) {
     *received = true;
     *crc_error = false;
     return LORA_OK;
 }
+#define lora_received mock_lora_received1
+#endif
 
-lora_status_t mock_lora_receive_packet(uint8_t *buf, uint8_t *return_len, uint8_t size) {
-    // printf("%s[MOCK]%s lora_receive_packet\n", C_PURPLE, C_DEFAULT); 
+#ifdef LORA_RECECIVED_TT
+lora_status_t mock_lora_received2(bool *received, bool *crc_error) {
+    *received = true;
+    *crc_error = true;
+    return LORA_OK;
+}
+#define lora_received mock_lora_received2
+#endif
+
+#ifdef LORA_RECEIVE_PACKET_BME
+lora_status_t mock_lora_receive_packet_bme(uint8_t *buf, uint8_t *return_len, uint8_t size) {
     buf[0] = 0x33; 
     buf[1] = 0x22;
     buf[2] = 0x11;
@@ -29,21 +39,35 @@ lora_status_t mock_lora_receive_packet(uint8_t *buf, uint8_t *return_len, uint8_
     *return_len = size;
     return LORA_OK;
 }
+#define lora_receive_packet mock_lora_receive_packet_bme
+#endif
+
+#ifdef LORA_RECEIVE_PACKET_BMA
+lora_status_t mock_lora_receive_packet_bma(uint8_t *buf, uint8_t *return_len, uint8_t size) {
+    buf[0] = 0x33; 
+    buf[1] = 0x22;
+    buf[2] = 0x11;
+    buf[3] = 0x00;
+    buf[4] = 0x02;
+    buf[5] = 0x17;
+    buf[6] = 0x04;
+    buf[7] = 0x38;
+    *return_len = size;
+    return LORA_OK;
+}
+#define lora_receive_packet mock_lora_receive_packet_bma
+#endif
 
 lora_status_t mock_lora_packet_rssi(uint8_t *rssi) {
-    // printf("%s[MOCK]%s lora_packet_rssi\n", C_PURPLE, C_DEFAULT);
     *rssi = 164;
     return LORA_OK;
 }
 
 lora_status_t mock_lora_packet_snr(uint8_t *snr) {
-    // printf("%s[MOCK]%s lora_packet_snr\n", C_PURPLE, C_DEFAULT);
     *snr = 7;
     return LORA_OK;
 }
 #define lora_receive_mode mock_lora_receive_mode
-#define lora_received mock_lora_received
-#define lora_receive_packet mock_lora_receive_packet
 #define lora_packet_rssi mock_lora_packet_rssi
 #define lora_packet_snr mock_lora_packet_snr
 #endif
