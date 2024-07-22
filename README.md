@@ -23,4 +23,4 @@ password=verysecurepassword
 topic=topic/something
 ```
 ## Known issues
-If your mqtt password contains non-ascii symbols try to copy and paste it instead typing it.
+If your mqtt password contains non-ascii symbols try to copy and paste it instead of typing it.
